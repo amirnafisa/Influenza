@@ -43,6 +43,9 @@ private:
 	int 	total_reinfected_p_s;
 	int		total_household_people;//number of people at home in a given hour
 	int     total_business_people;//number of people at businesses in a given hour
+//yuwen add print initial infections to file 010719 begin
+	int 	total_infected;//number of people who are infected with flu
+//yuwen add print initial infections to file 010719 end
 	std::vector<float>	averages_rn_p;//the average daily pandemic reproduction numbers
 	std::vector<float>  averages_rn_s;//the average daily seasonal reproduction numbers
 	std::vector<int> generationsPandemic;//array of pandemic generation sizes

@@ -360,7 +360,13 @@ Person::eHealthcareType Person::selectHealthcare(int day)
 Person::eHealthcareType Person::decideProvider(int day)
 {
 	float prob, randNum;
-	if(day%7 != 0 && day%7 != 6)//The case is a child that can be seen by pediatricians immediately on weekdays
+//yuwen add begin day in week 010819 begin
+	int _offsetDays = day + Flu_Manager::Instance()->BEGIN_WEEKDAY - 1;
+	if(_offsetDays%7 != 0 && _offsetDays%7 != 6)
+//yuwen add begin day in week 010819 end
+//yuwen delete begin day in week 010819 begin
+	//if(day%7 != 0 && day%7 != 6)//The case is a child that can be seen by pediatricians immediately on weekdays
+//yuwen delete begin day in week 010819 end
 	{
 		randNum=p_city->getSimRun()->uni(0,1);
 		prob=Flu_Manager::Instance()->PR_ACCESSIBLITY;//The probability that a person can access primary care
@@ -429,16 +435,25 @@ void Person::infected(bool pandemic,Person* infector,int day)
 	{	
 		//contactee has pandemic virus
 		if(infector==NULL)//initial infected
-			_generation_pandemic=1;
+		{	_generation_pandemic=1;
+//yuwen add 0107 initial begin
+			_day_begin_infection_pandemic=0;
+//yuwen add 0107 initial end
+		}
 		//printf("_generation_pandemic is %d", _generation_pandemic);
 		else //infected contactee is one level down from infector on the tree
 		{	
 			_generation_pandemic=infector->getGenerationPandemic()+1;
 			infector->setReproNumber(true);
+//yuwen add 0107 initial begin
+			_day_begin_infection_pandemic=day;
+//yuwen add 0107 initial end
 		}
-		_day_begin_infection_pandemic=day;
 		_disease_clock_pandemic=0;	
 		_daysOfPandemicInfection = -2;//set to "just infected"
+//yuwen delete 0107 initial begin
+		//_day_begin_infection_pandemic=day;
+//yuwen delete 0107 initial end
 		if(prevVirusType==NONE)
 		{
 			_rn_init_pandemic= Flu_Manager::Instance()->reproduction_number_pandemic;
@@ -446,6 +461,7 @@ void Person::infected(bool pandemic,Person* infector,int day)
 			//printf("currentvirus type is %d\n", currentVirusType);
 			prevVirusType=PANDEMIC;
 			infectionType=INFECTED_PANDEMIC;
+
 		}
 		else if(prevVirusType==SEASONAL)
 		{
@@ -473,15 +489,25 @@ void Person::infected(bool pandemic,Person* infector,int day)
 	else //contactee has seasonal virus
 	{
 		if(infector==NULL)//initial infected
+		{
 			_generation_seasonal=1;
+//yuwen add 0107 initial begin
+			_day_begin_infection_seasonal=0;
+//yuwen add 0107 initial end
+		}
 		else
 		{
 			_generation_seasonal=infector->getGenerationSeasonal()+1; //infected is one level down from infector on the tree
 			infector->setReproNumber(false);
+//yuwen add 0107 initial begin
+			_day_begin_infection_seasonal=day;
+//yuwen add 0107 initial end
 		}
-		_day_begin_infection_seasonal=day;
 		_disease_clock_seasonal=0;
 		_daysOfSeasonalInfection = -2;
+//yuwen delete 0107 initial begin
+		//_day_begin_infection_seasonal=day;
+//yuwen delete 0107 initial end
 		if(prevVirusType==NONE)
 		{
 			_rn_init_seasonal= Flu_Manager::Instance()->reproduction_number_seasonal;
@@ -602,8 +628,13 @@ void Person::setSchedule(int day)
 	{
 		for(int i=1;i<=24;i++)//reset all schedule hours to resting place, people too sick to work will not be scheduled anywhere else
 			_schedule[i-1]=p_restPlace;
-
-		if (day%7 != 0 && day%7 != 6)  //a weekday begins ...
+//yuwen add begin day in a week 010819 begin
+		int _offsetDays = day + Flu_Manager::Instance()->BEGIN_WEEKDAY - 1;
+		if (_offsetDays%7 != 0 && _offsetDays%7 != 6)
+//yuwen add begin day in a week 010819 end
+//yuwen delete begin day in a week 010819 begin
+		//if (day%7 != 0 && day%7 != 6)  //a weekday begins ...
+//yuwen delete begin day in a week 010819 end
 		{
 				if(_age<=22)//person gets a child schedule
 					setChildSchedule();
@@ -867,7 +898,13 @@ void Person::processInfections(int hr, int day)
 			{
 				float locMod=Flu_Manager::Instance()->k_hh;//currentlocationModifier
 				//std::vector<int> checkHours;//the key hours of the day to accumulate contacts
-				if(day%7!=0 && day%7 !=6)//weekday
+//yuwen add begin day in a week 010819 begin
+				int _offsetDays = day + Flu_Manager::Instance()->BEGIN_WEEKDAY - 1;
+				if (_offsetDays%7 != 0 && _offsetDays%7 != 6)
+//yuwen add begin day in a week 010819 end
+//yuwen delete begin day in a week 010819 begin
+				//if(day%7!=0 && day%7 !=6)//weekday
+//yuwen delete begin day in a week 010819 end
 				{
 					if(hr==20)//everyone goes home at this time
 					{
@@ -1417,8 +1454,14 @@ void Person::setArrivalSchedule(int day)
 {
 	for(int i=1;i<=24;i++)
 		_schedule[i-1]=p_restPlace;
-	if(day % 7==0 || day % 7==6) //weekend
-		setWeekendSchedule();
+//yuwen add begin day in week 010819 begin
+		int _offsetDays = day + Flu_Manager::Instance()->BEGIN_WEEKDAY - 1;
+		if (_offsetDays%7 != 0 && _offsetDays%7 != 6)
+//yuwen add begin day in week 010819 end
+//yuwen delete begin day in week 010819 begin
+	//if(day % 7==0 || day % 7==6) //weekend
+//yuwen delete begin day in week 010819 end
+			setWeekendSchedule();
 	else
 	{	// select 3 different time slots between 8:00 and 19:00
 		set<int> errandHours; //a set ensures each number hour will be a unique value

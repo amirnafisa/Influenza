@@ -82,8 +82,8 @@ SimulationRun::SimulationRun(int id)
 	//yuwen change end
 	//generate cities
 //begin yuwen delete to fix memory problems 8/21/18
-/*
-	for(int i=0;i<Flu_Manager::Instance()->NUM_CITIES;i++)
+
+	/*for(int i=0;i<Flu_Manager::Instance()->NUM_CITIES;i++)
 	{
 		City* city;
 		if(i==0)//outbreak starts in this city
@@ -93,8 +93,7 @@ SimulationRun::SimulationRun(int id)
 		_cities.push_back(city);//_cities is vector with city object pointer
 		_totalPopulation+=city->getPopulationSize();
 	}
-	printf("Cities for run %d generated\n",_id);
-*/
+	printf("Cities for run %d generated\n",_id);*/
 //end yuwen delete to fix memory problems 8/21/18
 }
 
@@ -130,7 +129,7 @@ City* SimulationRun::getCity(int index) const
 void SimulationRun::outbreak()
 {
 	int	t_now = 0; // simulation clock time in hours
-	int day;//days of simulation
+	int day=0;//days of simulation
 	int hr;// hour of a given day
 	clock_t t;
 	//begin yuwen add to fix memory problem 8/21/18
@@ -146,7 +145,7 @@ void SimulationRun::outbreak()
 		_totalPopulation+=city->getPopulationSize();
 	}
 	printf("Cities for run %d generated\n",_id);
-
+	//end yuwen add to fix memory problem 8/21/18
 	//generate unique name for run output
 	char runId[3];
 	sprintf(runId,"%d",_id);//convert id to string
@@ -163,14 +162,16 @@ void SimulationRun::outbreak()
 	strcat(sampleStr,bStr);
 //yuwen	add 0625 printout end
 
-	FILE* globalOutput_genStats=fopen(statStr,"w");
-	fprintf(globalOutput_genStats, "Day  Population  Infected_total  Infected_p  Recovered_p  Infected_s  Recovered_s  Infected_p_only  Infected_s_only coinfected_s_p reinfected_s_p coinfected_p_s reinfected_p_s coinfected_sim\n");
+	FILE* globalOutput_genStats=fopen(statStr,"a+");
+//yuwen delete print to file initial infections 010719 begin 
+//	fprintf(globalOutput_genStats, "Day  Population  Infected_total  Infected_p  Recovered_p  Infected_s  Recovered_s  Infected_p_only  Infected_s_only coinfected_s_p reinfected_s_p coinfected_p_s reinfected_p_s coinfected_sim\n");
+//yuwen delete print to file initial infections 010719 end 
+
 //yuwen add 0624 print file
 	FILE* sampleOutput=fopen(sampleStr,"w");
 	fprintf(sampleOutput, "day 	test_p 	test_s 	test 	submit_p 	submit_s 	submit 	sumit_b 	uncollect_p 	uncollect_s 	uncollect 	\
 MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 
-//end yuwen add to fix memory problem 8/21/18
 //yuwen add 0624 end
 	for(unsigned int i=0;i<_cities.size();i++)
 		_cities[i]->openOutputFiles();
@@ -454,7 +455,13 @@ void SimulationRun::addtoSamplePool(Person* person, int day)
 	samplePoolPHL._PHLID = 1;
 	samplePoolPHL._submitDay=day;//record the day sample is submitted.
 //yuwen add parallel 1002 begin
-	if(day%7==6)//sampling collected in weekends assuming no shipment on Saturday
+//yuwen add begin day in week 010819 begin
+	int _offsetDays = day + Flu_Manager::Instance()->BEGIN_WEEKDAY - 1;
+	if (_offsetDays%7 == 6)
+//yuwen add begin day in week 010819 end
+//yuwen delete begin day in week 010819 begin
+	//if(day%7==6)//sampling collected in weekends assuming no shipment on Saturday
+//yuwen delete begin day in week 010819 end
 	{
 		if(samplePoolPHL._visitCityId==2)//samples are collected from rural area
 		{
@@ -469,7 +476,12 @@ void SimulationRun::addtoSamplePool(Person* person, int day)
 			_samplePoolPHL.push_back(samplePoolPHL);
 		}
 	}
-	else if(day%7==0)//sampling collected in weekends assuming no shipment in weekends
+//yuwen add begin day in week 010819 begin
+	else if (_offsetDays%7 == 0)
+//yuwen add begin day in week 010819 end
+//yuwen delete begin day in week 010819 begin
+	//else if(day%7==0)//sampling collected in weekends assuming no shipment in weekends
+//yuwen delete begin day in week 010819 end
 	{
 		if(samplePoolPHL._visitCityId==2)//samples are collected from rural area
 		{
@@ -602,9 +614,14 @@ void SimulationRun::SamplingPHL(int day)
 {
 	int _testByDay=0;
 	int work=0;//check whether PHL work on day
-	if(Flu_Manager::Instance()->WORK_WEEKEND==1 || day%7!=0 || day%7!=6)//allow PHL work in weekend
+//yuwen add begin day in week 010819 begin
+	int _offsetDays = day + Flu_Manager::Instance()->BEGIN_WEEKDAY - 1;
+	if(Flu_Manager::Instance()->WORK_WEEKEND==1 || (_offsetDays%7 != 0 && _offsetDays%7 != 6))
+//yuwen add begin day in week 010819 end	
+//yuwen delete begin day in week 010819 begin
+	//if(Flu_Manager::Instance()->WORK_WEEKEND==1 || day%7!=0 || day%7!=6)//allow PHL work in weekend
+//yuwen delete begin day in week 010819 end
 		work=1;	
-
 	//int samplePoolSize = _samplePoolPHL.size();
 	//printf("sample size in pool before rural is %d\n",samplePoolSize);
 	//int offset=0;
@@ -621,7 +638,7 @@ void SimulationRun::SamplingPHL(int day)
 			{
 				if(_samplePoolPHL[j]._arriveDay<=day)//arriving day (earliest available testing day) is the current day or before
 				{
-					if(Flu_Manager::Instance()->SAMPLING_CRITERIA==1)
+					if(Flu_Manager::Instance()->SAMPLING_CRITERIA==1) //FCFS
 					{
 						sumTested(j);//aggregate the number of tested samples by tested days
 						updateTestedBySubmit(j,day);//aggregate the number of tested samples by submission days
@@ -629,7 +646,9 @@ void SimulationRun::SamplingPHL(int day)
 					}
 					else if(Flu_Manager::Instance()->SAMPLING_CRITERIA==4) //FIFO only in first week
 					{
-						if(_samplePoolPHL[j]._arriveDay<=7){
+//yuwen change _arriveDay to _submitDay 011119 begin
+						if(_samplePoolPHL[j]._submitDay<=7){
+//yuwen change _arriveDay to _submitDay 011119 end
 							sumTested(j);
 							updateTestedBySubmit(j,day);
 					 		_testByDay++;
@@ -650,7 +669,9 @@ void SimulationRun::SamplingPHL(int day)
 					}
 					else if (Flu_Manager::Instance()->SAMPLING_CRITERIA==5) //FIFO in high risk group only in first week
 					{
-						if(_samplePoolPHL[j]._arriveDay<=7){
+//yuwen change _arriveDay to _submitDay 011119 begin
+						if(_samplePoolPHL[j]._submitDay<=7){
+//yuwen change _arriveDay to _submitDay 011119 end
 							if(_samplePoolPHL[j]._sample->getAge() <=5 || _samplePoolPHL[j]._sample->getAge()>=65)
 							{
 								sumTested(j);
@@ -697,7 +718,7 @@ void SimulationRun::SamplingPHL(int day)
 
 //yuwen change 1002 copy rural array after testing begin
 	int sampleRuralSize=_samplePoolRural.size();
-	if(work==1 || day%7!=0 || day%7!=6)//weekends work
+	if(work==1)//weekends work
 	{
 		for(int i = 0; i<sampleRuralSize; ++i)
 		{

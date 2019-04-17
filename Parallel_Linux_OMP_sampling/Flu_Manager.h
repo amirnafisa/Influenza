@@ -68,6 +68,9 @@ public:
 	float PR_ACCESSIBLITY;//Probability that a case can access a primary care
 	int WORK_WEEKEND;//DOES PHL WORK IN WEEKEND?
 //yuwen add seek healthcare 05152018_1 end
+//Yuwen add begin week day 010819 begin
+	int BEGIN_WEEKDAY;//The day that starts the simulation of a week: Mon 1, TUE 2, WED 3, THU 4, FRI 5, SAT 6, SUN 7
+//Yuwen add begin week day 010819 end	
 	static Flu_Manager *Instance();//create or get the singleton class object
 	~Flu_Manager(void); 
 	float getUniformValue(int);//get a value from _uniform[]

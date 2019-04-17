@@ -189,13 +189,23 @@ void Household::pickPatientZero(bool pandemic)
 	unsigned int pZero=(unsigned int)p_run->uni(0,householdSize);
 	if(pZero<_adults.size())//choice is an adult
 	{
-		_adults[pZero]->infected(pandemic,NULL,1);
+//yuwen delete to day 0 01/07/19
+		//_adults[pZero]->infected(pandemic,NULL,1);
+		_adults[pZero]->infected(pandemic,NULL,0);
 		//p_city->addToInfectedList(_adults[pZero]);
+//yuwen add initial numbers 010719 begin
+		p_city->addInfected(_adults[pZero]);
+//yuwen add initial numbers 010719 end
 	}
 	else //choice is a child
 	{
-		_children[pZero-_adults.size()]->infected(pandemic,NULL,1);
+//yuwen delete to day 0 01/07/19
+		//_children[pZero-_adults.size()]->infected(pandemic,NULL,1);
+		_children[pZero-_adults.size()]->infected(pandemic,NULL,0);
 		//p_city->addToInfectedList(_children[pZero-_adults.size()]);
+//yuwen add initial numbers 010719 begin
+		p_city->addInfected(_children[pZero-_adults.size()]);
+//yuwen add initial numbers 010719 end
 	}
 }
 

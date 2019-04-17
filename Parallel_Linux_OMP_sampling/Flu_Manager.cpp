@@ -225,6 +225,7 @@ void Flu_Manager::loadConstants()
 		fscanf(input_constants, "%d", &ALLOW_TRAVEL);
 	}
 	fscanf(input_constants, "%f", &OOS_TRAVEL_PROB);
+	fscanf(input_constants, "%f", &BEGIN_WEEKDAY);
 	fclose(input_constants);
 	quarantineOption=(QuarantineOptions)quarantine;//convert quaratine from int enumerated type and assign the value to quaratineOption
 	//set % vaccine coverage

@@ -108,15 +108,46 @@ City::City(int id,bool outbreak,SimulationRun* sim)
 	{
 		_daysOutbreak=1;
 		setPatientZeros();
+//yuwen add print day 0 infection results 010719 begin
+		total_sim_coinfected = getNewInfectedByType(COINFECTED_SIMULTANEOUS);
+		total_infected_pandemic_only = getNewInfectedByType(INFECTED_PANDEMIC);
+		total_infected_seasonal_only = getNewInfectedByType(INFECTED_SEASONAL);
+		total_coinfected_s_p = getNewInfectedByType(COINFECTED_SEASONAL_PANDEMIC);
+		total_reinfected_s_p = getNewInfectedByType(REINFECTED_SEASONAL_PANDEMIC);
+		total_coinfected_p_s = getNewInfectedByType(COINFECTED_PANDEMIC_SEASONAL);
+		total_reinfected_p_s = getNewInfectedByType(REINFECTED_PANDEMIC_SEASONAL);
+		total_infected_pandemic = total_infected_pandemic_only+total_coinfected_s_p +total_reinfected_s_p; //for initial pandemic, do not add total_sim_co
+		total_infected_seasonal = total_infected_seasonal_only+total_coinfected_p_s+total_reinfected_p_s+ total_sim_coinfected;
+		total_infected=total_infected_pandemic_only+total_infected_seasonal_only+total_sim_coinfected;
+		char runId[3];
+//yuwen delete correct id 012219 begin
+		//sprintf(runId,"%d",_id);//convert id to string
+//yuwen delete correct id 012219 end
+//yuwen add correct id 012219 begin
+		sprintf(runId,"%d",p_run->getId());//convert id to string
+//yuwen add correct id 012219 end
+		std::string RunStr="Run_no";
+		RunStr+=runId;
+		char statStr[34];
+		strcpy(statStr,RunStr.c_str());
+		char baseStr[26]="_output_general_stats.txt";
+		strcat(statStr,baseStr);
+
+		//printf("total_infected is %d\ntotal_infected_pandemic_only is %d\ntotal_infected_seasonal_only is %d\n", total_infected,total_infected_pandemic_only,total_infected_seasonal_only);
+		FILE* globalOutput_genStats_city=fopen(statStr,"w");
+		fprintf(globalOutput_genStats_city, "Day  Population  Infected_total  Infected_p  Recovered_p  Infected_s  Recovered_s  Infected_p_only  Infected_s_only coinfected_s_p reinfected_s_p coinfected_p_s reinfected_p_s coinfected_sim\n");
+		fprintf(globalOutput_genStats_city,	"0		0		%d		%d		%d		%d		%d		%d		%d		%d		%d		%d		%d		%d \n",total_infected,total_infected_pandemic,new_recovered_today_pandemic,total_infected_seasonal,new_recovered_today_seasonal,total_infected_pandemic_only,total_infected_seasonal_only,total_coinfected_s_p,total_reinfected_s_p,total_coinfected_p_s,total_reinfected_p_s,total_sim_coinfected);
+		fclose(globalOutput_genStats_city);
+//yuwen add print day 0 infection results 010719 end
 	}	
 	else
 	{
 		_daysOutbreak=0;
+		total_HH=0;
+		total_WP=0;
+		total_ER=0;
+		total_infectedByZeros=0;
 	}
-	total_HH=0;
-	total_WP=0;
-	total_ER=0;
-	total_infectedByZeros=0;
 }
 
 
