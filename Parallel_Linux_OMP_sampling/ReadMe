@@ -1,0 +1,104 @@
+#Objective:
+  - Add another scheme from FIFO to proportionate
+  - Find the appropriate proportions - Do analysis on results
+  - Analyse the growth rate of the infectious cases (simulated)
+  - Analyse the growth rate of the total submitted cases (observed)
+  - Analyse the growth rate of the submitted pandemic cases (simulated)
+  - Analyse the bias of the submitted and infectious cases
+
+  - Is it beneficial to look at percent of population infected w.r.t. day?
+
+#Questions:
+  - What is the benefit of sampling criteria 1,2,3,4 (first week only scheme)
+  - How to evaluate the results from the modification in the sampling criteria
+  - What is the use of _sampleClock in SamplingPHL
+  - The Life of a sample is less than 3 days (is it 3 from the day of arrival to the lab for test?)
+
+#Solution to update the scheme:
+  - In the function SamplingPHL, inside the loop
+  if sampling criteria is PROPORTIONATE:
+        if (arrival day of sample = today - 2) AND if (#tested_today  <   X):
+              ------- Update the tested numbers & erase the sample from the pool -----------
+
+        else if (arrival day of sample = today - 1) AND if (#tested_today  <   Y):
+              ------- Update the tested numbers & erase the sample from the pool -----------
+
+        else if (arrival day of sample = today) AND if (#tested_today  <   Z(FULL_CAPACITY)):
+              ------- Update the tested numbers & erase the sample from the pool -----------
+
+        else:
+                Ignore this sample (DO NOT DISCARD, KEEP IT FOR ANOTHER DAY)
+
+#Updates from last week's discussion:
+  - Plot_chart: Growth rate: Using exponential model (a*exp(b*x))
+  #- Growth Rate (Submitted data): Compute from observed submitted trend upto day d
+  - Similarly obtain growth rate for MSSS
+  - And for the tested data (from the matrix file)
+
+#Modifications in the code....
+The tested numbers seemed
+
+#Sampling Criteria FIFO
+0	107	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	102	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	169	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	234	3	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	260	2	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	6	237	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	258	27	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	316	6	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	370	0	0	7	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	433	0	0	9	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	500	0	13	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	500	15	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	463	15	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	485	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	19	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	481	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	500	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+
+#Sampling Criteria Proportion
+0	98	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	92	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	139	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	166	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	166	2	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	166	2	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	294	2	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	345	2	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	391	0	0	3	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	163	2	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	166	8	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	166	8	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	164	8	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	474	13	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	485	22	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	476	0	0	23	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	143	23	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	166	35	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	166	42	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	143	35	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	278	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
+
+#April 4th:
+1. How to evaluate the tested results:
+2. How to compute the proportions
+3. Strategy:
+    - Initial Allot (X, Y, Z)
+    - Recompute allot (considering the available samples for testing and PHL capacity)
+
+    Eg- Capacity(10) - initial allot (6:3:1)
+    SamplePoolPHL -   Tested
+    6,3,1         -   6,3,1
+    10,4,6        -   6,3,1
+    5,4,6         -   5,4,1
+    7,1,5         -   7,1,2
+4. Changes in the files: constants.txt, SimulationRun.cpp - Sampling PHL function
