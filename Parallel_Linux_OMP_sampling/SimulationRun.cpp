@@ -4,7 +4,7 @@
 #include "SimulationRun.h"
 #include "Flu_Manager.h"
 #include "Multi_City_44_Templates.h"
-#include <time.h> 
+#include <time.h>
 
 SimulationRun::SimulationRun(int id)
 {
@@ -58,8 +58,8 @@ SimulationRun::SimulationRun(int id)
 	{
 		for(j=0;j<23;j++)
 		{
-			submitPandemic[i][j] = 0;//matrix to store the number of tested pandemic specimens by submission date 
-			submitSeasonal[i][j] = 0;//matrix to store the number of tested seasonal specimens by submission date 
+			submitPandemic[i][j] = 0;//matrix to store the number of tested pandemic specimens by submission date
+			submitSeasonal[i][j] = 0;//matrix to store the number of tested seasonal specimens by submission date
 			submitTotal[i][j] = 0;
 		}
 	}
@@ -73,7 +73,7 @@ SimulationRun::SimulationRun(int id)
 	//yuwen change add
 
 	/*delete for parallel
-	for (int i = 1; i <= 10000; ++i) 
+	for (int i = 1; i <= 10000; ++i)
 	{
 		_uniform[i]= (float)fluRandom();
 	}
@@ -163,9 +163,9 @@ void SimulationRun::outbreak()
 //yuwen	add 0625 printout end
 
 	FILE* globalOutput_genStats=fopen(statStr,"a+");
-//yuwen delete print to file initial infections 010719 begin 
+//yuwen delete print to file initial infections 010719 begin
 //	fprintf(globalOutput_genStats, "Day  Population  Infected_total  Infected_p  Recovered_p  Infected_s  Recovered_s  Infected_p_only  Infected_s_only coinfected_s_p reinfected_s_p coinfected_p_s reinfected_p_s coinfected_sim\n");
-//yuwen delete print to file initial infections 010719 end 
+//yuwen delete print to file initial infections 010719 end
 
 //yuwen add 0624 print file
 	FILE* sampleOutput=fopen(sampleStr,"w");
@@ -181,19 +181,19 @@ MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 		day = 1+t_now/24; // A day begins ...
 		if (day >=2)
 		{//hr cycles from 1 to 24
-			hr=(t_now-(24*(day-1)))+1; 
+			hr=(t_now-(24*(day-1)))+1;
 		}
 		else {//less than 24 hours have passed
-			hr=t_now+1;            
+			hr=t_now+1;
 		}
 		printf("\nRun %d Day %d  Hour %d\n\n",_id,day,hr);
 //yuwen 0624 add update sample pool
 		if(day !=1 && hr==8 && Flu_Manager::Instance()->SAMPLING_CRITERIA>0)
-		{	
+		{
     		//t = clock();
 			SamplingPHL(day);
-			//t = clock() - t; 
-    		//double time_taken = ((double)t)/CLOCKS_PER_SEC/60; // in seconds 
+			//t = clock() - t;
+    		//double time_taken = ((double)t)/CLOCKS_PER_SEC/60; // in seconds
     		//fprintf(time_output,"Sampling on day %d took %f mins to execute \n", day, time_taken);
     	}
 
@@ -229,7 +229,7 @@ MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 
 			}
 		}
-	
+
 		if(hr==24)
 		{
 			_infectedByDay_p.push_back(total_infected_pandemic);
@@ -263,14 +263,14 @@ MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 	strcat(titleStr,cStr);
 
 	FILE* fSubmitPandemic=fopen(titleStr,"w");
-	
+
 	for (int c = 0; c <23; c++)
 	{
-      for (int d = 0 ; d < 23; d++) 
+      for (int d = 0 ; d < 23; d++)
       {
          fprintf(fSubmitPandemic, "%d\t", submitPandemic[c][d]);
       }
-      fprintf(fSubmitPandemic, "\n"); 
+      fprintf(fSubmitPandemic, "\n");
    	}
 	fclose(fSubmitPandemic);
 
@@ -282,10 +282,10 @@ MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 	strcat(titleStr,cStr);
 
 	FILE* fSubmitSeasonal=fopen(titleStr,"w");
-	
+
 	for (int c = 0; c <23; c++)
 	{
-      for (int d = 0 ; d < 23; d++) 
+      for (int d = 0 ; d < 23; d++)
       {
          fprintf(fSubmitSeasonal, "%d\t", submitSeasonal[c][d]);
       }
@@ -301,10 +301,10 @@ MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 	strcat(titleStr,cStr);
 
 	FILE* fSubmitTotal=fopen(titleStr,"w");
-	
+
 	for (int c = 0; c <23; c++)
 	{
-      for (int d = 0 ; d < 23; d++) 
+      for (int d = 0 ; d < 23; d++)
       {
          fprintf(fSubmitTotal, "%d\t", submitTotal[c][d]);
       }
@@ -317,7 +317,7 @@ MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 	for(unsigned int i=0;i<_cities.size();i++)
 	{
 		_cities[i]->closeOutputFiles();
-		_cities[i]->checkRNumber();	
+		_cities[i]->checkRNumber();
 	}
 	//print the rn totals
 	char rnStr[21];
@@ -342,12 +342,12 @@ MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 			{
 				sum_rn_p+=_cities[c]->getPandemicRn(i);
 				sumCities_p++;
-			}	
+			}
 			if(_cities[c]->getSeasonalRn(i)>0)
 			{
 				sum_rn_s+=_cities[c]->getSeasonalRn(i);
 				sumCities_s++;
-			}	
+			}
 			sumPandemicGeneration +=_cities[c]->getPandemicGenerations(i);
 			sumSeasonalGeneration +=_cities[c]->getSeasonalGenerations(i);
 		}
@@ -423,8 +423,8 @@ double SimulationRun::fluRandom()
 		return _seed/2147483647.0;
 }
 //yuwen change end
-//yuwen change add 
-float SimulationRun::getUniformValue(int index) 
+//yuwen change add
+float SimulationRun::getUniformValue(int index)
 {
 	return _uniform[index];
 }
@@ -432,7 +432,7 @@ float SimulationRun::getUniformValue(int index)
 */
 
 double SimulationRun::uni(int a, int b)
-{   
+{
 	double x, y;
 	do {y = rand()/(double)RAND_MAX;
 		x = ((double)(a) + ((double)(b)-(double)a)*y);
@@ -521,12 +521,12 @@ void SimulationRun::addtoSamplePool(Person* person, int day)
 	{
 #pragma omp atomic
 		total_pandemic_submit_samples++;
-#pragma omp atomic		
+#pragma omp atomic
 		total_seasonal_submit_samples++;
-#pragma omp atomic		
+#pragma omp atomic
 		total_both_submit_samples++;
 	}
-#pragma omp atomic	
+#pragma omp atomic
 	total_submit_samples++;
 //yuwen add parallel 1002 end
 //}
@@ -617,14 +617,31 @@ void SimulationRun::SamplingPHL(int day)
 //yuwen add begin day in week 010819 begin
 	int _offsetDays = day + Flu_Manager::Instance()->BEGIN_WEEKDAY - 1;
 	if(Flu_Manager::Instance()->WORK_WEEKEND==1 || (_offsetDays%7 != 0 && _offsetDays%7 != 6))
-//yuwen add begin day in week 010819 end	
+//yuwen add begin day in week 010819 end
 //yuwen delete begin day in week 010819 begin
 	//if(Flu_Manager::Instance()->WORK_WEEKEND==1 || day%7!=0 || day%7!=6)//allow PHL work in weekend
 //yuwen delete begin day in week 010819 end
-		work=1;	
+		work=1;
 	//int samplePoolSize = _samplePoolPHL.size();
 	//printf("sample size in pool before rural is %d\n",samplePoolSize);
 	//int offset=0;
+
+	/* Nafisa start - If the sampling criteria is proportionate (=6) then get the counts per submitted day*/
+	int n_submit_by_day[3] = {0,0,0};
+	int n_test_by_day[3] = {0};
+	if (Flu_Manager::Instance()->SAMPLING_CRITERIA==6) {
+		for (int j = 0; j < _samplePoolPHL.size(); j++) {
+			if (_samplePoolPHL[j]._sampleClock < 3) {
+				n_submit_by_day[_samplePoolPHL[j]._sampleClock]++;
+			}
+		}
+		for (int j = 0; j < 3; j++) {
+			n_test_by_day[j] = (int)(n_submit_by_day[j]*Flu_Manager::Instance()->PHL_CAPACITY /
+													(n_submit_by_day[0] + n_submit_by_day[1] + n_submit_by_day[2]));
+		}
+	}
+	//Nafisa end ---
+
 	int j=0;
 	while(j!=_samplePoolPHL.size())
 	//for(int i=0;i<samplePoolSize;i++)
@@ -684,7 +701,7 @@ void SimulationRun::SamplingPHL(int day)
 						else
 							sumDiscard(j);
 					}
-					else if (Flu_Manager::Instance()->SAMPLING_CRITERIA==3)//hybrid sampling 
+					else if (Flu_Manager::Instance()->SAMPLING_CRITERIA==3)//hybrid sampling
 					{
 						if (CAPACITY_IND==0)//indicator = 0 for capacity not reached yet
 						{
@@ -699,9 +716,23 @@ void SimulationRun::SamplingPHL(int day)
 					 		_testByDay++;
 						}
 						else
-							sumDiscard(j);			
+							sumDiscard(j);
 					}
-					_samplePoolPHL.erase(_samplePoolPHL.begin()+j);
+					//Nafisa start ...
+					if (Flu_Manager::Instance()->SAMPLING_CRITERIA==6)//proportionate sampling -- Nafisa 06/03/2019
+					{
+						if( n_test_by_day[_samplePoolPHL[j]._sampleClock-1] > 0) {
+								sumTested(j);
+								updateTestedBySubmit(j,day);
+								_testByDay++;
+								n_test_by_day[_samplePoolPHL[j]._sampleClock-1]--;
+								_samplePoolPHL.erase(_samplePoolPHL.begin()+j);
+							}
+					}
+					else {
+						_samplePoolPHL.erase(_samplePoolPHL.begin()+j);
+					}
+					//Nafisa end ...
 				}
 				else//
 					j++;
@@ -713,7 +744,7 @@ void SimulationRun::SamplingPHL(int day)
 			}
 		}
 		else
-			j++;	
+			j++;
 	}
 
 //yuwen change 1002 copy rural array after testing begin
@@ -732,7 +763,7 @@ void SimulationRun::SamplingPHL(int day)
 	if(_testByDay==Flu_Manager::Instance()->PHL_CAPACITY)
 		CAPACITY_IND=1;
 	//_samplePoolPHL.erase(_samplePoolPHL.begin(),_samplePoolPHL.begin()+_testByDay);
-	//debug 
+	//debug
 }
 
 void SimulationRun::sumTested(int j)//aggregate the number of tested samples by tested days
@@ -776,7 +807,7 @@ void SimulationRun::sumDiscard(int j)
 	else if(_samplePoolPHL[j]._virusType==3) //both
 	{
 		total_discard_pandemic++;
-		total_discard_seasonal++;	
+		total_discard_seasonal++;
 	}
-	total_discard_all++;	
+	total_discard_all++;
 }
