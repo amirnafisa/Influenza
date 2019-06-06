@@ -636,8 +636,8 @@ void SimulationRun::SamplingPHL(int day)
 			}
 		}
 		for (int j = 0; j < 3; j++) {
-			n_test_by_day[j] = (int)(n_submit_by_day[j]*Flu_Manager::Instance()->PHL_CAPACITY /
-													(n_submit_by_day[0] + n_submit_by_day[1] + n_submit_by_day[2]));
+			n_test_by_day[j] = MIN( n_submit_by_day[j] , (int)(n_submit_by_day[j]*Flu_Manager::Instance()->PHL_CAPACITY /
+													(n_submit_by_day[0] + n_submit_by_day[1] + n_submit_by_day[2])));
 		}
 	}
 	//Nafisa end ---

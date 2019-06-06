@@ -6,6 +6,8 @@
 #ifndef SIMULATIONRUN_H
 #define SIMULATIONRUN_H
 
+#define MIN(a,b) a<b?a:b
+
 class SimulationRun
 {
 	private:
@@ -37,8 +39,8 @@ class SimulationRun
 		int	    new_recovered_today_seasonal ; // number of new recovered entities every day
 		int		_totalPopulation;
 //yuwen add 0624 print
-		int 	total_PHLtested_pandemic;//number of total cases with pandemic influenza tested by PHL 
-		int 	total_PHLtested_seasonal;//number of total cases with seasonal influenza tested by PHL 
+		int 	total_PHLtested_pandemic;//number of total cases with pandemic influenza tested by PHL
+		int 	total_PHLtested_seasonal;//number of total cases with seasonal influenza tested by PHL
 		int 	total_PHLtested_all;//number of total cases tested by PHL
 		int     total_pandemic_submit_samples;//number of total submitted pandemic samples
 		int 	total_seasonal_submit_samples;//number of total submitted seasonal samples
@@ -53,7 +55,7 @@ class SimulationRun
 		int     total_discard_pandemic;//number of total discarded pandemic samples
 		int     total_discard_seasonal;//number of total discarded seasonal samples
 		int     total_discard_all;//number of total discarded samples
-		int 	total_both_submit_samples;	
+		int 	total_both_submit_samples;
 //yuwen add 0624 end
 		std::vector<class City*> _cities;
 		std::vector<int> _infectedByDay_p;
@@ -78,8 +80,8 @@ class SimulationRun
 //yuwen add sample testing 05172018_4 end
 
 //yuwen add 1002 begin store the number of tested specimens by submission date in a matrix
-		int submitPandemic[23][23];//matrix to store the number of tested pandemic specimens by submission date 
-		int submitSeasonal[23][23];//matrix to store the number of tested seasonal specimens by submission date 
+		int submitPandemic[23][23];//matrix to store the number of tested pandemic specimens by submission date
+		int submitSeasonal[23][23];//matrix to store the number of tested seasonal specimens by submission date
 		int submitTotal[23][23];//matrix to store the number of tested total specimens by submission date
 //yuwen add 1002 end store the number of tested specimens by submission date in a matrix
 
@@ -105,7 +107,7 @@ class SimulationRun
 		void addtoMsssPool(Person*,int);//add a person info to MSSS pool
 		void updateTestedBySubmit(int,int);//update the number of tested samples by submission days
 //yuwen delete 1002 end
-		void SamplingPHL(int);//PHL choolse samping methods to test samples 
+		void SamplingPHL(int);//PHL choolse samping methods to test samples
 		void sumTested(int);//aggregate the total number of tested samples
 		void sumDiscard(int);//aggregate the total number of discarded samples
 //yuwen add sample testing 05172018_2 end
