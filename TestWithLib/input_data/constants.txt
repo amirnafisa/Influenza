@@ -1,0 +1,78 @@
+46780615
+20
+1.6
+1.9
+300
+300
+.5
+1
+1
+1
+1
+1
+1
+1
+1
+1
+0
+0
+0
+0
+8
+4
+1
+1
+1
+0.5
+0.5
+0.5
+0.7
+0.3
+0.5
+6
+1
+500
+0.5
+0
+1
+0.411
+3
+
+Columns:
+
+1)  Seed //46780615
+2)  Simulation days
+3)  R pandemic
+4)  R seasonal
+5)  Initial number infected pandemic
+6)  Initial number infected seasonal
+7)  Factor by which the infectiousness profile of an asymptomatic is reduced asymp = 0.22
+8)  Proportion of duration and closeness of a household contact with respect to the household contact  k_hh=1
+9)  Proportion of duration and closeness of a workplace contact with respect to the household contact k_wp=0.67
+10) Proportion of duration and closeness of an errand contact with respect to the household contact k_er=0.44
+11 - 16) Adjustments to the infectiousness profile based on co-infection or re-infection
+17) Absenteeism with or without hospitalization due to illness as a factor in the simulation 0=no absenteeism ,1=absenteeism,2=absenteeism with hospitalzation
+18) Toggle pandemic vaccination 1= vaccination 0=no vaccination
+19) Toggel seasonal vaccination 1= vaccination 0=no vaccination
+20) Toggle antiviral treatment 1= using antivirals 0 = not using them
+21) Numer of threads used in simulation
+22) Number of cities in simulation
+23) Number of runs of simulation
+24) Toggle scaled/unscaled 0=unscaled,1=scaled
+25) Toogle allow out of state travel 1=allow,0=not allow
+26) Severe probability of the disease
+27) Antival usage probability in vulnerable population groups
+28) Poverty baseline percentage
+29) Percentage of ED report to MSSS in Michigan
+30) Probability of a case perceived as pandemic influenza
+31) Probability that a case to be sampled in healthcare providers that are not ER
+32) Sampling Criteria Testing: 0=Not activated, 1=FIFO, 2=FIFO high risk, 3=Hybrid of 1 and 2, 4=FIFO first week, 5=FIFO high risk first week
+33) Number of PHL labs
+34) PHL Lab Capacity
+35) Probability that primarycare is accessible to a case.
+36) Toggle PHL work in weekend or not. 0=not work, 1=work.
+37) Toggle allow travel between cities, 1=travel,0=no travel
+38) Probability that a traveler traveling out of state
+39) Begin day in a week: 1=MON, 2=TUE, 3=WED, 4=THUR, 5=FRI, 6=SAT,7=SUN
+
+/46780615

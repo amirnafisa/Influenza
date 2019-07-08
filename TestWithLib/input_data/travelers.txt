@@ -1,0 +1,19 @@
+0.02954550	.1374	4940	49
+0.08843577	.214	579	6
+0.02935269	.065	289	3
+0.01244531	.1726	42437	424
+
+
+probabilility of travel per person by region in order of region id
+rows:
+0=Southern Lower peninsula
+1=Northern Lower peninsula
+2=Upper peninsula rural
+3=SEMCOG
+
+columns:
+0=probability of travel outside region
+1=prob of region being a destination
+3=ave daily arrivals unscaled
+4=ave daily arrivals scaled
+
