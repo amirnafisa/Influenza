@@ -1,86 +1,73 @@
 #include "interface_calls.h"
 
-int current_state;
-int *constants;
+SIMULATION_RUNS runs;
 
-MPI_Status *mpi_status;
-int flag;
-MPI_Request recv_req;
-
-void start_run () {
-  if(!is_finished()) {
-    stop_run();
-  }
-
-  if (current_state != RUNNING) {
-    constants = (int*) calloc (40, sizeof(int));
-
-  	printf("...Starting the run...\n");
-    current_state = RUNNING;
-		constants[0] = current_state;
-		MPI_Send(constants, 40, MPI_INT, 0, 1, MPI_COMM_WORLD);
-    //Check for signal from run process indicating the completion of the run
-		MPI_Irecv(constants, 40, MPI_INT, 0, 2, MPI_COMM_WORLD, &recv_req);
-	}
+void start_button_cb (GtkWidget*btn, gpointer user_data) {
+  create_drawing_window(&runs.current_trends);
+  //runs.start_new_run((INF_TEXT*) user_data);
 }
 
-void pause_run () {
-  is_finished();
-	if (current_state == RUNNING) {
-  	printf("...Pausing the run...\n");
-    current_state = PAUSED;
-		constants[0] = current_state;
-		MPI_Send(constants, 40, MPI_INT, 0, 1, MPI_COMM_WORLD);
-	}
+void pause_button_cb (GtkWidget*btn, gpointer user_data) {
+  runs.pause_run();
 }
 
-bool is_finished () {
-  if (current_state == STOPPED) {
-    return 1;
-  }
+void continue_button_cb (GtkWidget*btn, gpointer user_data) {
+  runs.continue_run();
+}
+
+gint timeout_loop(gpointer text_view) {
   //Check if already finished
-  if (current_state == RUNNING) {
-    MPI_Test(&recv_req, &flag, mpi_status);
-    if (flag == 1) {
-      flag = 0;
-      stop_run();
-      return 1;
+  if (runs.state == RUNNING) {
+    MPI_Test(&runs.recv_req, &runs.flag, &runs.mpi_status);
+    if (runs.flag == 1) {
+      runs.flag = 0;
+      if (runs.recv_data[0] == -1) {
+        runs.stop_run();
+        create_drawing_window(&runs.current_trends);
+      } else {
+        update_trends((INF_TEXT*) text_view);
+        runs.get_trend_data_from_run();
+      }
     }
   }
-  return 0;
+  return 1;
 }
 
-void continue_run () {
-	if (current_state == PAUSED) {
-    printf("...Continue the run...\n");
-    current_state = RUNNING;
-		constants[0] = current_state;
-		MPI_Send(constants, 40, MPI_INT, 0, 1, MPI_COMM_WORLD);
-	}
-}
+void update_trends(INF_TEXT* text_view) {
 
-void stop_run () {
-  //Else send stop command
-  if (current_state != STOPPED) {
-  	printf("...Stopping the run...\n");
-    current_state = STOPPED;
-		constants[0] = current_state;
-    MPI_Send(constants, 40, MPI_INT, 0, 1, MPI_COMM_WORLD);
+  GtkTextBuffer* buf;
+  GtkTextIter    iter;
 
-    free(constants);
+  text_view->add_text ("\n", PLAIN_OUTPUT);
+  for (gint i: runs.recv_data) {
+    text_view->add_text (g_strdup_printf("%i\t", i), PLAIN_OUTPUT);
   }
+  text_view->add_text ("\n", PLAIN_OUTPUT);
+
+  runs.current_trends.data[runs.current_trends.idx].day         = runs.recv_data[0];
+  runs.current_trends.data[runs.current_trends.idx].test_p      = runs.recv_data[1];
+  runs.current_trends.data[runs.current_trends.idx].test_s      = runs.recv_data[2];
+  runs.current_trends.data[runs.current_trends.idx].test        = runs.recv_data[3];
+  runs.current_trends.data[runs.current_trends.idx].submit_p    = runs.recv_data[4];
+  runs.current_trends.data[runs.current_trends.idx].submit_s    = runs.recv_data[5];
+  runs.current_trends.data[runs.current_trends.idx].submit      = runs.recv_data[6];
+  runs.current_trends.data[runs.current_trends.idx].submit_b    = runs.recv_data[7];
+  runs.current_trends.data[runs.current_trends.idx].uncollect_p = runs.recv_data[8];
+  runs.current_trends.data[runs.current_trends.idx].uncollect_s = runs.recv_data[9];
+  runs.current_trends.data[runs.current_trends.idx].uncollect   = runs.recv_data[10];
+  runs.current_trends.data[runs.current_trends.idx].MSSS_p      = runs.recv_data[11];
+  runs.current_trends.data[runs.current_trends.idx].MSSS_s      = runs.recv_data[12];
+  runs.current_trends.data[runs.current_trends.idx].MSSS        = runs.recv_data[13];
+  runs.current_trends.data[runs.current_trends.idx].discard_p   = runs.recv_data[14];
+  runs.current_trends.data[runs.current_trends.idx].discard_s   = runs.recv_data[15];
+  runs.current_trends.data[runs.current_trends.idx].discard     = runs.recv_data[16];
+  runs.current_trends.data[runs.current_trends.idx].CAP_ind     = runs.recv_data[17];
+
+  runs.current_trends.idx++;
+
 }
 
-void exit_process () {
-  printf("...Exiting the application...\n");
-
-  stop_run ();
-
-  if (current_state == STOPPED) {
-    constants = (int*) calloc (40, sizeof(int));
-  }
-  constants[0] = 4;
-  MPI_Send(constants, 40, MPI_INT, 0, 1, MPI_COMM_WORLD);
-  free(constants);
-
+void exit ()
+{
+  runs.exit_process ();
 }

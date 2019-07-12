@@ -1,15 +1,11 @@
 #include "interface_main.h"
 
-extern int current_state;
-
-int run_gui_interface(int argc, char* argv[]) {
+gint run_gui_interface(gint argc, gchar* argv[]) {
   GtkApplication *app;
-  int gtk_status;
+  gint gtk_status;
 
   app = gtk_application_new ("org.gtk.example", G_APPLICATION_FLAGS_NONE);
   g_signal_connect (app, "activate", G_CALLBACK (activate), NULL);
-
-  current_state = STOPPED;
 
   gtk_status = g_application_run (G_APPLICATION (app), argc, argv);
   g_object_unref (app);
@@ -19,37 +15,23 @@ int run_gui_interface(int argc, char* argv[]) {
 
 static void activate (GtkApplication* app, gpointer user_data)
 {
-  GtkWidget *main_grid;
-  GtkWidget *window;
-  GtkWidget *start_button, *pause_button, *continue_button;
 
-  main_grid = gtk_grid_new();
+  INF_MAINWINDOW root_window (app, "Influenza Simulation for Michigan");
 
-  window = gtk_application_window_new (app);
-  gtk_window_set_title (GTK_WINDOW (window), "Window");
-  gtk_window_set_default_size (GTK_WINDOW (window), 200, 200);
+  INF_VBOX main_box (root_window.window);
+  INF_HBOX button_box (main_box.vbox);
+  INF_HBOX output_box (main_box.vbox);
 
-  gtk_container_add(GTK_CONTAINER(window), main_grid);
+  INF_TEXT *result_display = new INF_TEXT (output_box.hbox);
 
-  start_button = add_button("Start", start_run);
-  gtk_grid_attach (GTK_GRID (main_grid), start_button, 0, 0, 1, 1);
+  INF_BUTTON start_button (button_box.hbox, "START", start_button_cb, result_display);
+  INF_BUTTON pause_button (button_box.hbox, "PAUSE", pause_button_cb, NULL);
+  INF_BUTTON continue_button (button_box.hbox, "CONTINUE", continue_button_cb, NULL);
 
-  pause_button = add_button("Pause", pause_run);
-  gtk_grid_attach (GTK_GRID (main_grid), pause_button, 1, 0, 1, 1);
+  result_display->add_text("day\ttest_p\ttest_s\ttest\tsubmit_p\tsubmit_s\tsubmit\tsumit_b\tuncollect_p\tuncollect_s\tuncollect\tMSSS_p\tMSSS_s\tMSSS\tdiscard_p\tdiscard_s\tdiscard\tCAP_ind\n", BLUE_FOREGROUND);
 
-  continue_button = add_button("Continue", continue_run);
-  gtk_grid_attach (GTK_GRID (main_grid), continue_button, 2, 0, 1, 1);
+  g_timeout_add (50, timeout_loop, (gpointer) result_display);
 
-  gtk_widget_show_all (window);
+  gtk_widget_show_all (root_window.window);
 
-}
-
-static GtkWidget* add_button (const gchar text[], void (*func_cb)())
-{
-  GtkWidget *button;
-
-  button = gtk_button_new_with_label (text);
-  g_signal_connect (button, "clicked", G_CALLBACK (func_cb), NULL);
-
-  return button;
 }

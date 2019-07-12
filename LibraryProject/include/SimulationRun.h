@@ -92,7 +92,7 @@ class SimulationRun
 		int getId() const;
 		City* getCity(int) const;
 		//float getUniformValue(int);
-		bool outbreak(int* status);
+		bool outbreak();
 		bool hasCityWithOutbreak();
 		int getDailyInfectedPandemic(int);
 		int getDailyInfectedSeasonal(int);

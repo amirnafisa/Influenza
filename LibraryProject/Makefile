@@ -2,7 +2,7 @@ CXX = mpic++
 SRCDIR = src/
 INCDIR = include/
 LIBDIR = lib/
-SRCFILES =  Business.cpp City.cpp Flu_Manager.cpp Household.cpp Location.cpp Person.cpp SimulationRun.cpp
+SRCFILES =  Business.cpp City.cpp Flu_Manager.cpp Household.cpp Location.cpp Person.cpp SimulationRun.cpp mpi_interface.cpp
 SRCS = $(addprefix $(SRCDIR),$(SRCFILES))
 
 OBJS = $(SRCFILES:.cpp=.o)

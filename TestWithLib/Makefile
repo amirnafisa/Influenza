@@ -3,7 +3,7 @@ INCDIR = ../LibraryProject/include/
 SRCLIBDIR = ../LibraryProject/lib/
 TARGETLIBDIR = lib/
 SRCDIR = ./
-SRCFILES = Multi_City_Main.cpp interface_main.cpp interface_calls.cpp
+SRCFILES = Multi_City_Main.cpp interface_main.cpp interface_calls.cpp simulation_calls.cpp cairo_draw.cpp
 lib = FluSimulation
 SRCS = $(addprefix $(SRCDIR),$(SRCFILES))
 
@@ -21,3 +21,4 @@ all: ${TARGET}
 .PHONY: clean
 clean:
 	rm ${TARGET}
+	rm output_data/*
