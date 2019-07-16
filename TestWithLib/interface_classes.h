@@ -4,7 +4,9 @@
 #include <gtk/gtk.h>
 
 enum text_type{BLUE_FOREGROUND=1, PLAIN_OUTPUT=0};
-
+enum {
+  DAY, TEST_P, TEST_S, TEST, SUBMIT_P, SUBMIT_S, SUBMIT, SUBMIT_B, UNCOLLECT_P, UNCOLLECT_S, UNCOLLECT, MSSS_P, MSSS_S, MSSS, DISCARD_P, DISCARD_S, DISCARD, CAP_IND, N_COLUMNS
+};
 class INF_VBOX
 {
 public:
@@ -53,60 +55,102 @@ public:
   {
     window = gtk_application_window_new (app);
     gtk_window_set_title (GTK_WINDOW (window), title);
-    gtk_window_set_default_size (GTK_WINDOW (window), 600, 600);
+    gtk_window_set_default_size (GTK_WINDOW (window), 1000, 600);
   }
 };
-class INF_TEXT {
+
+class INF_TREE_VIEW {
 public:
-  GtkWidget *text_view;
+  GtkWidget *tree, *da, *combo_box;
 private:
-  GtkWidget* label;
-  GtkWidget *text_scrolledwindow;
-  GtkTextTag *tag_heading, *tag_text;
-  GtkTextBuffer *buffer;
-  GtkTextIter iter, start, end;
-
+  GtkTreeStore *store;
+  GtkCellRenderer *renderer;
+  GtkTreeViewColumn *column;
+  GtkTreeIter iter;
+  gint i;
 public:
-  INF_TEXT (GtkWidget* master)
+  INF_TREE_VIEW (GtkWidget* master, void (*func_cb)(GtkComboBox*, gpointer))
   {
-    INF_VBOX sub_vbox (master);
-    label = gtk_label_new ("day\ttest_p\ttest_s\ttest\tsubmit_p\tsubmit_s\tsubmit\tsumit_b\tuncollect_p\tuncollect_s\tuncollect\tMSSS_p\tMSSS_s\tMSSS\tdiscard_p\tdiscard_s\tdiscard\tCAP_ind");
-    g_object_set (label, "margin", 5, NULL);
-    gtk_box_pack_start(GTK_BOX (sub_vbox.vbox), label, FALSE, TRUE, 2);
 
-    text_scrolledwindow = gtk_scrolled_window_new(NULL, NULL);
-    g_object_set (text_scrolledwindow, "margin", 5, NULL);
+    GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 
-    buffer = gtk_text_buffer_new (NULL);
-    text_view = gtk_text_view_new_with_buffer (buffer);
-    gtk_widget_set_hexpand(text_view, TRUE);
-    gtk_widget_set_vexpand(text_view, TRUE);
+    /* Create a model.  We are using the store model for now, though we
+     * could use any other GtkTreeModel */
+    store = gtk_tree_store_new (N_COLUMNS, G_TYPE_INT, G_TYPE_INT, G_TYPE_INT, G_TYPE_INT,
+                                G_TYPE_INT, G_TYPE_INT, G_TYPE_INT, G_TYPE_INT, G_TYPE_INT,
+                                G_TYPE_INT, G_TYPE_INT,   G_TYPE_INT, G_TYPE_INT, G_TYPE_INT,
+                                G_TYPE_INT, G_TYPE_INT, G_TYPE_INT, G_TYPE_INT);
 
-    gtk_text_view_set_left_margin (GTK_TEXT_VIEW (text_view), 30);
+    // Create a view
+    tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
+    g_object_unref (G_OBJECT (store));
 
-    gtk_container_add(GTK_CONTAINER(text_scrolledwindow), text_view);
-    gtk_box_pack_start(GTK_BOX (sub_vbox.vbox), text_scrolledwindow, FALSE, TRUE, 2);
+    //Add and render columns
+    add_column_to_tree ("Day", "text", DAY);
+    add_column_to_tree ("test_p", "text", TEST_P);
+    add_column_to_tree ("test_s", "text", TEST_S);
+    add_column_to_tree ("test", "text", TEST);
+    add_column_to_tree ("submit_p", "text", SUBMIT_P);
+    add_column_to_tree ("submit_s", "text", SUBMIT_S);
+    add_column_to_tree ("submit", "text", SUBMIT);
+    add_column_to_tree ("submit_b", "text", SUBMIT_B);
+    add_column_to_tree ("uncollect_p", "text", UNCOLLECT_P);
+    add_column_to_tree ("uncollect_s", "text", UNCOLLECT_S);
+    add_column_to_tree ("uncollect", "text", UNCOLLECT);
+    add_column_to_tree ("msss_p", "text", MSSS_P);
+    add_column_to_tree ("msss_s", "text", MSSS_S);
+    add_column_to_tree ("msss", "text", MSSS);
+    add_column_to_tree ("discard_p", "text", DISCARD_P);
+    add_column_to_tree ("discard_s", "text", DISCARD_S);
+    add_column_to_tree ("discard", "text", DISCARD);
+    add_column_to_tree ("cap_ind", "text", CAP_IND);
 
-    tag_heading = gtk_text_buffer_create_tag (buffer, "blue_foreground", "foreground", "red", "background", "yellow", NULL);
-    tag_text = gtk_text_buffer_create_tag (buffer, "plain_output", "foreground", "black", "background", "white", NULL);
+    gtk_widget_set_size_request (scrolled_window, 50, 100);
+    gtk_container_add (GTK_CONTAINER (scrolled_window), tree);
+    gtk_box_pack_start(GTK_BOX (master), scrolled_window, FALSE, FALSE, 2);
 
+    combo_box = gtk_combo_box_text_new ();
+    const char *distros[] = {"Select Trend to view Graph", "test_p", "test_s", "test", "submit_p", "submit_s","submit",
+    "submit_b", "uncollect_p", "uncollect_s", "uncollect", "msss_p", "msss_s", "msss", "discard_p", "discard_s", "discard", "cap_ind"};
+    for (i = 0; i < G_N_ELEMENTS (distros); i++){
+  	   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo_box), distros[i]);
+    }
+    gtk_combo_box_set_active (GTK_COMBO_BOX (combo_box), 0);
+    gtk_box_pack_start(GTK_BOX (master), combo_box, FALSE, FALSE, 2);
+
+    da = gtk_drawing_area_new ();
+
+    GtkWidget *scrolled_window2 = gtk_scrolled_window_new (NULL, NULL);
+    gtk_widget_set_size_request (scrolled_window2, 400, 540);
+    gtk_container_add (GTK_CONTAINER (scrolled_window2), da);
+    gtk_box_pack_start(GTK_BOX (master), scrolled_window2, TRUE, TRUE, 2);
+
+
+    g_signal_connect (combo_box, "changed", G_CALLBACK (func_cb), (gpointer) da);
+    g_signal_connect (da, "draw", G_CALLBACK (draw_cb), NULL);
   }
 
-  void add_text (const gchar text[], text_type tag)
+  void add_column_to_tree (const gchar title[], const gchar mode[], gint col)
   {
-    gtk_text_buffer_get_iter_at_offset (buffer, &iter, 0);
-    if (tag == BLUE_FOREGROUND)
-      gtk_text_buffer_insert_with_tags_by_name (buffer, &iter, text, -1, "blue_foreground", NULL);
-    else
-      gtk_text_buffer_insert_with_tags_by_name (buffer, &iter, text, -1, "plain_output", NULL);
+    /* Last column.. whether a book is checked out. */
+    renderer = gtk_cell_renderer_text_new ();
+    column = gtk_tree_view_column_new_with_attributes (title,
+                                                       renderer,
+                                                       mode, col,
+                                                       NULL);
+    gtk_tree_view_append_column (GTK_TREE_VIEW (tree), column);
   }
-
-  void clear_text ()
+  void insert_data (gint data[])
   {
-    gtk_text_buffer_get_bounds(buffer, &start, &end);
-    gtk_text_buffer_delete(buffer, &start, &end);
+    // Add a new row to the model
+    gtk_tree_store_append (store, &iter, NULL);
+    gtk_tree_store_set (store, &iter,
+                        DAY, data[DAY], TEST_P, data[TEST_P], TEST_S, data[TEST_S], TEST, data[TEST], SUBMIT_P, data[SUBMIT_P], SUBMIT_S, data[SUBMIT_S], SUBMIT, data[SUBMIT], SUBMIT_B, data[SUBMIT_B], UNCOLLECT_P, data[UNCOLLECT_P], UNCOLLECT_S, data[UNCOLLECT_S], UNCOLLECT, data[UNCOLLECT], MSSS_P, data[MSSS_P], MSSS_S, data[MSSS_S], MSSS, data[MSSS], DISCARD_P, data[DISCARD_P], DISCARD_S, data[DISCARD_S], DISCARD, data[DISCARD], CAP_IND, data[CAP_IND],
+                        -1);
+  }
+  void clear_table ()
+  {
+    gtk_tree_store_clear(store);
   }
 };
-
-
 #endif

@@ -4,10 +4,14 @@
 #include <gtk/gtk.h>
 #include <plplot/plstream.h>
 
+#define SIMULATION_DAYS_LIMIT 200
+#define N_TRENDS 18
+
 typedef struct {
-  PLFLT x[200];
-  PLFLT y[200];
+  PLFLT y[SIMULATION_DAYS_LIMIT];
   PLINT n_entries;
+  const gchar *title;
+  const gchar *y_label;
 }PlotData;
 
 class LineGraph {
@@ -15,14 +19,24 @@ public:
   PLFLT xmin = 0., xmax = 10., ymin = 0., ymax = 500.;
     PLINT just=0, axis=0;
     plstream *pls;
-  LineGraph (cairo_t *cr)
+  LineGraph (cairo_t *cr, PlotData* data)
   {
       pls = new plstream();  // declare plplot object
       pls->sdev("extcairo");
       pls->init();
       pls->cmd(PLESC_DEVINIT, cr);
-      pls->env(xmin, xmax, ymin, ymax, just, axis );
-      pls->lab( "(x)", "(y)", "PlPlot example title");
+
+      if (data->n_entries > 0) {
+        xmax = data->n_entries*1.1;
+        for (gint i: data->y)
+          if (i > ymax)
+            ymax = i;
+
+        ymax *= 1.1;
+        pls->env(xmin, xmax, ymin, ymax, just, axis );
+        pls->lab( "Days", data->y_label, data->title);
+        plot(data);
+      }
   }
   ~LineGraph ()
   {
@@ -30,7 +44,10 @@ public:
   }
   void plot (PlotData *data)
   {
-    pls->line( data->n_entries, data->x, data->y );
+    PLFLT x[data->n_entries];
+    for (gint i = 0; i < data->n_entries; i++)
+      x[i] = (PLFLT) i+1;
+    pls->line( data->n_entries, x, data->y );
   }
   void clear ()
   {
@@ -38,7 +55,7 @@ public:
   }
 };
 
-static gboolean draw_cb (GtkWidget* widget, cairo_t* cr, gpointer user_data);
-void create_drawing_window (PlotData* data);
+gboolean draw_cb (GtkWidget* widget, cairo_t* cr, gpointer user_data);
+void create_drawing_window (GtkWidget* da, PlotData* data);
 void close_plotwindow_cb (GtkWidget* widget, gpointer user_data);
 #endif

@@ -19,10 +19,10 @@ static void activate (GtkApplication* app, gpointer user_data)
   INF_MAINWINDOW root_window (app, "Influenza Simulation for Michigan");
 
   INF_VBOX main_box (root_window.window);
-  INF_HBOX button_box (main_box.vbox);
-  INF_HBOX output_box (main_box.vbox);
 
-  INF_TEXT *result_display = new INF_TEXT (output_box.hbox);
+  INF_HBOX button_box (main_box.vbox);
+
+  INF_TREE_VIEW *result_display = new INF_TREE_VIEW (main_box.vbox, combo_box_cb);
 
   INF_BUTTON start_button (button_box.hbox, "START", start_button_cb, result_display);
   INF_BUTTON pause_button (button_box.hbox, "PAUSE", pause_button_cb, NULL);

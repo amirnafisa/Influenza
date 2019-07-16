@@ -4,7 +4,7 @@ SIMULATION_RUNS runs;
 
 void start_button_cb (GtkWidget*btn, gpointer user_data) {
 
-  runs.start_new_run((INF_TEXT*) user_data);
+  runs.start_new_run((INF_TREE_VIEW*) user_data);
 }
 
 void pause_button_cb (GtkWidget*btn, gpointer user_data) {
@@ -15,6 +15,24 @@ void continue_button_cb (GtkWidget*btn, gpointer user_data) {
   runs.continue_run();
 }
 
+void combo_box_cb (GtkComboBox *combo_box, gpointer user_data)
+{
+  if (gtk_combo_box_get_active (combo_box) != 0) {
+    GtkWidget* da = (GtkWidget*) user_data;
+    gint k = gtk_combo_box_get_active (combo_box);
+    
+    PlotData* data = new (PlotData);
+    data->n_entries = runs.current_idx;
+    for (gint i = 0; i < runs.current_idx; i++) {
+      data->y[i] = (PLFLT)runs.current_trends[i][k];
+    }
+
+    data->y_label = "Number of Cases";
+    data->title = "Influenza Plots";
+    create_drawing_window(da, data);
+  }
+}
+
 gint timeout_loop(gpointer text_view) {
 
 
@@ -23,21 +41,11 @@ gint timeout_loop(gpointer text_view) {
     MPI_Test(&runs.recv_req, &runs.flag, &runs.mpi_status);
     if (runs.flag == 1) {
       runs.flag = 0;
-      if (runs.recv_data[0] == -1) {
+      if (runs.current_trends[runs.current_idx][0] == -1) {
         runs.stop_run();
-
-        //create_drawing_window (x_data1, y_data1, 4);
-        PlotData* new_data = new (PlotData);
-        new_data->n_entries = (PLINT)runs.current_trends.idx;
-        for (gint i = 0; i < new_data->n_entries; i++) {
-          new_data->x[i] = (PLFLT)runs.current_trends.data[i].day;
-          new_data->y[i] = (PLFLT)runs.current_trends.data[i].submit_p;
-        }
-        create_drawing_window(new_data);
-        delete new_data;
-
+        combo_box_cb (GTK_COMBO_BOX(((INF_TREE_VIEW*)text_view)->combo_box), (gpointer) ((INF_TREE_VIEW*)text_view)->da);
       } else {
-        update_trends((INF_TEXT*) text_view);
+        update_trends((INF_TREE_VIEW*) text_view);
         runs.get_trend_data_from_run();
       }
     }
@@ -45,38 +53,9 @@ gint timeout_loop(gpointer text_view) {
   return 1;
 }
 
-void update_trends(INF_TEXT* text_view) {
-
-  GtkTextBuffer* buf;
-  GtkTextIter    iter;
-
-  text_view->add_text ("\n", PLAIN_OUTPUT);
-  for (gint i = 17; i >= 0; i--) {
-    text_view->add_text (g_strdup_printf("%i\t", runs.recv_data[i]), PLAIN_OUTPUT);
-  }
-  text_view->add_text ("\n", PLAIN_OUTPUT);
-
-  runs.current_trends.data[runs.current_trends.idx].day         = runs.recv_data[0];
-  runs.current_trends.data[runs.current_trends.idx].test_p      = runs.recv_data[1];
-  runs.current_trends.data[runs.current_trends.idx].test_s      = runs.recv_data[2];
-  runs.current_trends.data[runs.current_trends.idx].test        = runs.recv_data[3];
-  runs.current_trends.data[runs.current_trends.idx].submit_p    = runs.recv_data[4];
-  runs.current_trends.data[runs.current_trends.idx].submit_s    = runs.recv_data[5];
-  runs.current_trends.data[runs.current_trends.idx].submit      = runs.recv_data[6];
-  runs.current_trends.data[runs.current_trends.idx].submit_b    = runs.recv_data[7];
-  runs.current_trends.data[runs.current_trends.idx].uncollect_p = runs.recv_data[8];
-  runs.current_trends.data[runs.current_trends.idx].uncollect_s = runs.recv_data[9];
-  runs.current_trends.data[runs.current_trends.idx].uncollect   = runs.recv_data[10];
-  runs.current_trends.data[runs.current_trends.idx].MSSS_p      = runs.recv_data[11];
-  runs.current_trends.data[runs.current_trends.idx].MSSS_s      = runs.recv_data[12];
-  runs.current_trends.data[runs.current_trends.idx].MSSS        = runs.recv_data[13];
-  runs.current_trends.data[runs.current_trends.idx].discard_p   = runs.recv_data[14];
-  runs.current_trends.data[runs.current_trends.idx].discard_s   = runs.recv_data[15];
-  runs.current_trends.data[runs.current_trends.idx].discard     = runs.recv_data[16];
-  runs.current_trends.data[runs.current_trends.idx].CAP_ind     = runs.recv_data[17];
-
-  runs.current_trends.idx++;
-
+void update_trends(INF_TREE_VIEW* text_view) {
+  text_view->insert_data (runs.current_trends[runs.current_idx]);
+  runs.current_idx++;
 }
 
 void exit ()
