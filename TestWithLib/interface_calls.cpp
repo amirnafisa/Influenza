@@ -3,8 +3,8 @@
 SIMULATION_RUNS runs;
 
 void start_button_cb (GtkWidget*btn, gpointer user_data) {
-  create_drawing_window(&runs.current_trends);
-  //runs.start_new_run((INF_TEXT*) user_data);
+
+  runs.start_new_run((INF_TEXT*) user_data);
 }
 
 void pause_button_cb (GtkWidget*btn, gpointer user_data) {
@@ -16,6 +16,8 @@ void continue_button_cb (GtkWidget*btn, gpointer user_data) {
 }
 
 gint timeout_loop(gpointer text_view) {
+
+
   //Check if already finished
   if (runs.state == RUNNING) {
     MPI_Test(&runs.recv_req, &runs.flag, &runs.mpi_status);
@@ -23,7 +25,17 @@ gint timeout_loop(gpointer text_view) {
       runs.flag = 0;
       if (runs.recv_data[0] == -1) {
         runs.stop_run();
-        create_drawing_window(&runs.current_trends);
+
+        //create_drawing_window (x_data1, y_data1, 4);
+        PlotData* new_data = new (PlotData);
+        new_data->n_entries = (PLINT)runs.current_trends.idx;
+        for (gint i = 0; i < new_data->n_entries; i++) {
+          new_data->x[i] = (PLFLT)runs.current_trends.data[i].day;
+          new_data->y[i] = (PLFLT)runs.current_trends.data[i].submit_p;
+        }
+        create_drawing_window(new_data);
+        delete new_data;
+
       } else {
         update_trends((INF_TEXT*) text_view);
         runs.get_trend_data_from_run();
@@ -39,8 +51,8 @@ void update_trends(INF_TEXT* text_view) {
   GtkTextIter    iter;
 
   text_view->add_text ("\n", PLAIN_OUTPUT);
-  for (gint i: runs.recv_data) {
-    text_view->add_text (g_strdup_printf("%i\t", i), PLAIN_OUTPUT);
+  for (gint i = 17; i >= 0; i--) {
+    text_view->add_text (g_strdup_printf("%i\t", runs.recv_data[i]), PLAIN_OUTPUT);
   }
   text_view->add_text ("\n", PLAIN_OUTPUT);
 

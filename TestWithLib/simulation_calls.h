@@ -54,7 +54,7 @@ public:
 
     printf("...Starting the run...\n");
     run_idx++;
-
+    current_trends.idx = 0;
     text_view->clear_text();
     state = RUNNING;
     MPI_Send(&state, 1, MPI_INT, dest_rank, SIGNAL_TAG, MPI_COMM_WORLD);

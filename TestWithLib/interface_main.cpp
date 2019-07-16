@@ -28,8 +28,6 @@ static void activate (GtkApplication* app, gpointer user_data)
   INF_BUTTON pause_button (button_box.hbox, "PAUSE", pause_button_cb, NULL);
   INF_BUTTON continue_button (button_box.hbox, "CONTINUE", continue_button_cb, NULL);
 
-  result_display->add_text("day\ttest_p\ttest_s\ttest\tsubmit_p\tsubmit_s\tsubmit\tsumit_b\tuncollect_p\tuncollect_s\tuncollect\tMSSS_p\tMSSS_s\tMSSS\tdiscard_p\tdiscard_s\tdiscard\tCAP_ind\n", BLUE_FOREGROUND);
-
   g_timeout_add (50, timeout_loop, (gpointer) result_display);
 
   gtk_widget_show_all (root_window.window);

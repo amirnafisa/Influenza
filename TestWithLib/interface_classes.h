@@ -1,6 +1,8 @@
 #ifndef __INTERFACE_CLASSES__
 #define __INTERFACE_CLASSES__
 
+#include <gtk/gtk.h>
+
 enum text_type{BLUE_FOREGROUND=1, PLAIN_OUTPUT=0};
 
 class INF_VBOX
