@@ -16,7 +16,7 @@ typedef struct {
 
 class LineGraph {
 public:
-  PLFLT xmin = 0., xmax = 10., ymin = 0., ymax = 500.;
+  PLFLT xmin = 0., xmax = 0., ymin = 0., ymax = 0.;
     PLINT just=0, axis=0;
     plstream *pls;
   LineGraph (cairo_t *cr, PlotData* data)

@@ -32,11 +32,30 @@ public:
     state = INIT;
   }
 
-  void get_trend_data_from_run() {
-      MPI_Irecv(&current_trends[current_idx], RECV_DATA_SIZE, MPI_INT, dest_rank, DATA_TAG, MPI_COMM_WORLD, &recv_req);
+  void get_trend_data_from_run()
+  {
+      MPI_Irecv(&current_trends[current_idx], DATA_SIZE, MPI_INT, dest_rank, DATA_TAG, MPI_COMM_WORLD, &recv_req);
   }
 
-  void start_new_run (INF_TREE_VIEW* text_view)
+  void get_flu_manager_data (gdouble data[])
+  {
+    state_types prev_state = state;
+    state = GET_COMMAND;
+    MPI_Send (&state, 1, MPI_INT, dest_rank, SIGNAL_TAG, MPI_COMM_WORLD);
+    MPI_Recv (&data[0], CONSTANTS_SIZE, MPI_DOUBLE, dest_rank, CONSTANTS_TAG, MPI_COMM_WORLD, &mpi_status);
+    state = prev_state;
+  }
+
+  void set_flu_manager_data (gdouble data[])
+  {
+    state_types prev_state = state;
+    state = SET_COMMAND;
+    MPI_Send (&state, 1, MPI_INT, dest_rank, SIGNAL_TAG, MPI_COMM_WORLD);
+    MPI_Send (&data[0], CONSTANTS_SIZE, MPI_DOUBLE, dest_rank, CONSTANTS_TAG, MPI_COMM_WORLD);
+    state = prev_state;
+  }
+
+  void start_new_run (INF_RESULT_VIEW* text_view)
   {
     if (state == RUNNING) {
       stop_run();

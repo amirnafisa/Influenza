@@ -8,8 +8,10 @@
 void start_button_cb (GtkWidget*btn, gpointer user_data);
 void pause_button_cb (GtkWidget*btn, gpointer user_data);
 void continue_button_cb (GtkWidget*btn, gpointer user_data);
+void populate_button_cb (GtkWidget*btn, gpointer user_data);
+void retrieve_button_cb (GtkWidget*btn, gpointer user_data);
 void combo_box_cb (GtkComboBox *combo_box, gpointer user_data);
-void update_trends(INF_TREE_VIEW* view);
+void update_trends(INF_RESULT_VIEW* view);
 gint timeout_loop(gpointer view);
 void exit ();
 

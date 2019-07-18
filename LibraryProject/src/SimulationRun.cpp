@@ -185,32 +185,23 @@ MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 	//FILE* time_output=fopen("timer.txt","w");
 	while(hasCityWithOutbreak())
 	{
+		state_types prev_state = state;
 		check_state(&rq, &flag, &state);
-
-		if (state == STOPPED) {
-			fclose(globalOutput_genStats);
-			fclose(sampleOutput);
-			for(unsigned int i=0;i<_cities.size();i++)
-			{
-				_cities[i]->closeOutputFiles();
-			}
-			//begin yuwen add to release memory of vectors for each simulation run
-				for(unsigned int i=0;i<_cities.size();i++)
-				{
-					delete _cities[i];
-					_cities[i]=NULL;
-				}
-				_samplePoolPHL.clear();
-				_samplePoolPHL.shrink_to_fit();
-				_samplePoolRural.clear();
-				_samplePoolRural.shrink_to_fit();
-				_uncollectedSample.clear();
-				_uncollectedSample.shrink_to_fit();
-				_sampleMsss.clear();
-				_sampleMsss.shrink_to_fit();
-			return 0;
-		}
-		if (state == RUNNING) {
+		if (state == SET_COMMAND) {
+					double data[CONSTANTS_SIZE];
+					receive_constants_from_interface (&data[0]);
+					Flu_Manager::Instance()->max_days = data[SIM_DAYS];
+					Flu_Manager::Instance()->reproduction_number_pandemic = data[R_PANDEMIC];
+					Flu_Manager::Instance()->reproduction_number_seasonal = data[R_SEASONAL];
+					Flu_Manager::Instance()->SCALING = data[SCALED];
+					Flu_Manager::Instance()->ALLOW_OOS_TRAVEL = data[OOS_TRAVEL];
+					Flu_Manager::Instance()->SAMPLING_CRITERIA = data[SAMPLING];
+					Flu_Manager::Instance()->NUM_PHL = data[N_PHL];
+					Flu_Manager::Instance()->PHL_CAPACITY = data[PHL_CAPACITY];
+					Flu_Manager::Instance()->WORK_WEEKEND = data[PHL_WEEKEND];
+					Flu_Manager::Instance()->ALLOW_TRAVEL = data[TRAVEL_CITIES];
+					state = prev_state;
+		} else if (state == RUNNING) {
 			day = 1+t_now/24; // A day begins ...
 			if (day >=2)
 			{//hr cycles from 1 to 24
@@ -289,6 +280,8 @@ MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 //yuwen add 0624 end
 			}
 			t_now++;
+		} else if (state == STOPPED) {
+			break;
 		}
 	}
 

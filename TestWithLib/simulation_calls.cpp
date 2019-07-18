@@ -20,7 +20,6 @@ void instantiate_flu_manager ()
   //load initialization data
   Flu_Manager::Instance()->loadConstants();
   Flu_Manager::Instance()->loadInput();
-  Flu_Manager::Instance()->NUM_RUNS = 0;
 }
 
 void create_run (gint cur_run_idx)

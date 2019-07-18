@@ -7,15 +7,37 @@ enum text_type{BLUE_FOREGROUND=1, PLAIN_OUTPUT=0};
 enum {
   DAY, TEST_P, TEST_S, TEST, SUBMIT_P, SUBMIT_S, SUBMIT, SUBMIT_B, UNCOLLECT_P, UNCOLLECT_S, UNCOLLECT, MSSS_P, MSSS_S, MSSS, DISCARD_P, DISCARD_S, DISCARD, CAP_IND, N_COLUMNS
 };
+
+
 class INF_VBOX
 {
 public:
   GtkWidget* vbox;
+private:
+  GtkWidget* scrolled_window;
+  GtkWidget *result_frame;
 public:
-  INF_VBOX (GtkWidget* master)
+  INF_VBOX (GtkWidget* master, gboolean frame, gboolean scrollable, gboolean box)
   {
+    if (scrollable) {
+      scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+      gtk_container_add (GTK_CONTAINER (master), scrolled_window);
+    } else {
+      scrolled_window = master;
+    }
+
     vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
-    gtk_container_add (GTK_CONTAINER(master), vbox);
+    gtk_widget_set_halign (vbox, GTK_ALIGN_START);
+    if (frame) {
+      result_frame = gtk_frame_new ("");
+      gtk_container_add (GTK_CONTAINER (result_frame), vbox);
+    } else {
+      result_frame = vbox;
+    }
+    if (box)
+      gtk_box_pack_start (GTK_BOX (master), result_frame, TRUE, FALSE, 2);
+    else
+      gtk_container_add (GTK_CONTAINER(scrolled_window), result_frame);
   }
 };
 
@@ -24,10 +46,19 @@ class INF_HBOX
 public:
   GtkWidget* hbox;
 public:
-  INF_HBOX (GtkWidget* master)
+  INF_HBOX (GtkWidget* master, gboolean frame)
   {
     hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 2);
-    gtk_container_add (GTK_CONTAINER(master), hbox);
+    gtk_widget_set_halign (hbox, GTK_ALIGN_START);
+    if (frame) {
+      GtkWidget *result_frame = gtk_frame_new ("");
+      gtk_container_add (GTK_CONTAINER (result_frame), hbox);
+      gtk_box_pack_start(GTK_BOX (master), result_frame, TRUE, TRUE, 2);
+      //gtk_container_add (GTK_CONTAINER(master), result_frame);
+    } else {
+      gtk_box_pack_start(GTK_BOX (master), hbox, TRUE, TRUE, 2);
+      //gtk_container_add (GTK_CONTAINER(master), hbox);
+    }
   }
 };
 
@@ -39,6 +70,7 @@ public:
   INF_BUTTON (GtkWidget* master, const gchar text[], void (*func_cb)(GtkWidget*, gpointer), gpointer user_data)
   {
     button = gtk_button_new_with_label (text);
+    gtk_widget_set_halign (button, GTK_ALIGN_START);
     g_signal_connect (button, "clicked", G_CALLBACK (func_cb), (gpointer) user_data);
     g_object_set (button, "margin", 5, NULL);
     gtk_box_pack_start(GTK_BOX (master), button, FALSE, TRUE, 2);
@@ -59,7 +91,67 @@ public:
   }
 };
 
-class INF_TREE_VIEW {
+class INF_INPUT_VIEW {
+private:
+  GtkSizeGroup *input_group;
+  GtkWidget *entry[CONSTANTS_SIZE], *label;
+  const gchar* INF_CONSTANTS[CONSTANTS_SIZE] = {
+    "Simulation Days",
+    "Reproduction Number: Pandemic",
+    "Reproduction Number: Seasonal",
+    "Scaling",
+    "Out of State Travel",
+    "PHL Sampling Criteria",
+    "Number of PHLs",
+    "PHL Capacity",
+    "PHL working on Weekend",
+    "Travel between cities"
+  };
+public:
+  INF_INPUT_VIEW (GtkWidget* master)
+  {
+
+    INF_VBOX enclosing_label_box (master, FALSE, FALSE, TRUE);
+    g_object_set (enclosing_label_box.vbox, "margin", 5, NULL);
+    INF_VBOX enclosing_entry_box (master, FALSE, FALSE, TRUE);
+    g_object_set (enclosing_entry_box.vbox, "margin", 5, NULL);
+    input_group	= gtk_size_group_new (GTK_SIZE_GROUP_BOTH);
+
+    for (gint i = 0; i < CONSTANTS_SIZE; i++)
+    {
+      label = gtk_label_new (INF_CONSTANTS[i]);
+      gtk_widget_set_halign (label, GTK_ALIGN_START);
+      gtk_size_group_add_widget (input_group,  label);
+      gtk_label_set_xalign (GTK_LABEL (label), 0.);
+      entry[i] = gtk_entry_new ();
+      gtk_widget_set_halign (entry[i], GTK_ALIGN_START);
+      gtk_size_group_add_widget (input_group,  entry[i]);
+      gtk_box_pack_start(GTK_BOX (enclosing_label_box.vbox), label, FALSE, TRUE, 2);
+      gtk_box_pack_start(GTK_BOX (enclosing_entry_box.vbox), entry[i], FALSE, TRUE, 2);
+    }
+  }
+
+  void populate_entries (gdouble data[])
+  {
+      gchar buffer[50];
+      for (gint i = 0; i < CONSTANTS_SIZE; i++)
+      {
+        sprintf (buffer, "%f", data[i]);
+        gtk_entry_set_text (GTK_ENTRY (entry[i]), buffer);
+      }
+  }
+
+  void get_data_from_entries (gdouble data[])
+  {
+    for (gint i = 0; i < CONSTANTS_SIZE; i++)
+    {
+      data[i] = std::stof (gtk_entry_get_text (GTK_ENTRY (entry[i])));
+
+    }
+  }
+};
+
+class INF_RESULT_VIEW {
 public:
   GtkWidget *tree, *da, *combo_box;
 private:
@@ -69,11 +161,12 @@ private:
   GtkTreeIter iter;
   gint i;
 public:
-  INF_TREE_VIEW (GtkWidget* master, void (*func_cb)(GtkComboBox*, gpointer))
+  INF_RESULT_VIEW (GtkWidget* master, void (*func_cb)(GtkComboBox*, gpointer))
   {
 
-    GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 
+    GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+    gtk_widget_set_halign (scrolled_window, GTK_ALIGN_START);
     /* Create a model.  We are using the store model for now, though we
      * could use any other GtkTreeModel */
     store = gtk_tree_store_new (N_COLUMNS, G_TYPE_INT, G_TYPE_INT, G_TYPE_INT, G_TYPE_INT,
@@ -83,6 +176,7 @@ public:
 
     // Create a view
     tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
+    gtk_widget_set_halign (tree, GTK_ALIGN_START);
     g_object_unref (G_OBJECT (store));
 
     //Add and render columns
@@ -105,23 +199,25 @@ public:
     add_column_to_tree ("discard", "text", DISCARD);
     add_column_to_tree ("cap_ind", "text", CAP_IND);
 
-    gtk_widget_set_size_request (scrolled_window, 50, 100);
+    gtk_widget_set_size_request (scrolled_window, 700, 100);
     gtk_container_add (GTK_CONTAINER (scrolled_window), tree);
-    gtk_box_pack_start(GTK_BOX (master), scrolled_window, FALSE, FALSE, 2);
+    gtk_box_pack_start(GTK_BOX (master), scrolled_window, TRUE, FALSE, 2);
 
     combo_box = gtk_combo_box_text_new ();
+    gtk_widget_set_halign (combo_box, GTK_ALIGN_START);
     const char *distros[] = {"Select Trend to view Graph", "test_p", "test_s", "test", "submit_p", "submit_s","submit",
     "submit_b", "uncollect_p", "uncollect_s", "uncollect", "msss_p", "msss_s", "msss", "discard_p", "discard_s", "discard", "cap_ind"};
     for (i = 0; i < G_N_ELEMENTS (distros); i++){
   	   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo_box), distros[i]);
     }
     gtk_combo_box_set_active (GTK_COMBO_BOX (combo_box), 0);
-    gtk_box_pack_start(GTK_BOX (master), combo_box, FALSE, FALSE, 2);
+    gtk_box_pack_start(GTK_BOX (master), combo_box, TRUE, FALSE, 2);
 
     da = gtk_drawing_area_new ();
 
     GtkWidget *scrolled_window2 = gtk_scrolled_window_new (NULL, NULL);
-    gtk_widget_set_size_request (scrolled_window2, 400, 540);
+    gtk_widget_set_halign (scrolled_window2, GTK_ALIGN_START);
+    gtk_widget_set_size_request (scrolled_window2, 700, 540);
     gtk_container_add (GTK_CONTAINER (scrolled_window2), da);
     gtk_box_pack_start(GTK_BOX (master), scrolled_window2, TRUE, TRUE, 2);
 
