@@ -7,11 +7,13 @@ void start_button_cb (GtkWidget*btn, gpointer user_data) {
 }
 
 void pause_button_cb (GtkWidget*btn, gpointer user_data) {
-  runs.pause_run();
-}
-
-void continue_button_cb (GtkWidget*btn, gpointer user_data) {
-  runs.continue_run();
+  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (btn))) {
+    gtk_button_set_label (GTK_BUTTON (btn), "CONTINUE");
+    runs.pause_run();
+  } else {
+    gtk_button_set_label (GTK_BUTTON (btn), "PAUSE");
+    runs.continue_run();
+  }
 }
 
 void populate_button_cb (GtkWidget*btn, gpointer user_data) {

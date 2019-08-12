@@ -1,5 +1,6 @@
 #include "interface_main.h"
 
+
 gint run_gui_interface(gint argc, gchar* argv[]) {
   GtkApplication *app;
   gint gtk_status;
@@ -15,14 +16,21 @@ gint run_gui_interface(gint argc, gchar* argv[]) {
 
 static void activate (GtkApplication* app, gpointer user_data)
 {
+  GtkCssProvider *cssProvider = gtk_css_provider_new ();
+
+  gtk_css_provider_load_from_path(cssProvider, "style.css", NULL);
+
+  gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
+                                 GTK_STYLE_PROVIDER(cssProvider),
+                                 GTK_STYLE_PROVIDER_PRIORITY_USER);
 
   INF_MAINWINDOW root_window (app, "Influenza Simulation for Michigan");
 
   INF_VBOX main_box (root_window.window, FALSE, TRUE, FALSE);
 
-  INF_HBOX button_box (main_box.vbox, FALSE);
+  INF_HBOX button_box (main_box.vbox, FALSE, FALSE);
 
-  INF_HBOX sub_box (main_box.vbox, FALSE);
+  INF_HBOX sub_box (main_box.vbox, FALSE, TRUE);
   INF_VBOX output_box (sub_box.hbox, TRUE, FALSE, TRUE);
 
   INF_RESULT_VIEW *result_display = new INF_RESULT_VIEW (output_box.vbox, combo_box_cb);
@@ -31,8 +39,7 @@ static void activate (GtkApplication* app, gpointer user_data)
 
 
   INF_BUTTON start_button (button_box.hbox, "START", start_button_cb, result_display);
-  INF_BUTTON pause_button (button_box.hbox, "PAUSE", pause_button_cb, NULL);
-  INF_BUTTON continue_button (button_box.hbox, "CONTINUE", continue_button_cb, NULL);
+  INF_TOGGLE_BUTTON pause_button (button_box.hbox, "PAUSE", pause_button_cb, NULL);
   INF_BUTTON populate_button (button_box.hbox, "GET SIM INFO", populate_button_cb, constants_display);
   INF_BUTTON retrieve_button (button_box.hbox, "SET SIM INFO", retrieve_button_cb, constants_display);
 

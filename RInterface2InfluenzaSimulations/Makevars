@@ -1,0 +1,6 @@
+CC=/usr/local/bin/gcc-9
+CXX=/usr/local/bin/g++-9
+CPLUS_INCLUDE_PATH=/usr/local/include:$CPLUS_INCLUDE_PATH
+LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+CXXFLAGS= -g0 -O2 -Wall -O3 -std=c++11 -fopenmp
+MAKE=make -j4

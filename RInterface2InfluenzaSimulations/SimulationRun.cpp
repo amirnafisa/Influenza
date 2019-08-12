@@ -5,8 +5,6 @@
 #include "Flu_Manager.h"
 #include "Multi_City_44_Templates.h"
 #include <time.h>
-#include "mpi_interface.h"
-
 
 SimulationRun::SimulationRun(int id)
 {
@@ -128,14 +126,12 @@ City* SimulationRun::getCity(int index) const
 	return _cities[index];
 }
 
-bool SimulationRun::outbreak()
+void SimulationRun::outbreak()
 {
 	int	t_now = 0; // simulation clock time in hours
 	int day=0;//days of simulation
 	int hr;// hour of a given day
 	clock_t t;
-
-	MPI_Request rq;
 	//begin yuwen add to fix memory problem 8/21/18
 
 	for(int i=0;i<Flu_Manager::Instance()->NUM_CITIES;i++)
@@ -153,7 +149,7 @@ bool SimulationRun::outbreak()
 	//generate unique name for run output
 	char runId[3];
 	sprintf(runId,"%d",_id);//convert id to string
-	std::string RunStr="output_data/Run_no";
+	std::string RunStr="Run_no";
 	RunStr+=runId;
 	char statStr[34];
 	strcpy(statStr,RunStr.c_str());
@@ -165,9 +161,6 @@ bool SimulationRun::outbreak()
 	char bStr[25]="_number_daily_tested.txt";
 	strcat(sampleStr,bStr);
 //yuwen	add 0625 printout end
-	int flag = 1;
-
-	state_types state = RUNNING;
 
 	FILE* globalOutput_genStats=fopen(statStr,"a+");
 //yuwen delete print to file initial infections 010719 begin
@@ -185,121 +178,78 @@ MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 	//FILE* time_output=fopen("timer.txt","w");
 	while(hasCityWithOutbreak())
 	{
-		state_types prev_state = state;
-		check_state(&rq, &flag, &state);
-		if (state == SET_COMMAND) {
-					double data[CONSTANTS_SIZE];
-					receive_constants_from_interface (&data[0]);
-					Flu_Manager::Instance()->max_days = data[SIM_DAYS];
-					Flu_Manager::Instance()->reproduction_number_pandemic = data[R_PANDEMIC];
-					Flu_Manager::Instance()->reproduction_number_seasonal = data[R_SEASONAL];
-					Flu_Manager::Instance()->SCALING = data[SCALED];
-					Flu_Manager::Instance()->ALLOW_OOS_TRAVEL = data[OOS_TRAVEL];
-					Flu_Manager::Instance()->SAMPLING_CRITERIA = data[SAMPLING];
-					Flu_Manager::Instance()->NUM_PHL = data[N_PHL];
-					Flu_Manager::Instance()->PHL_CAPACITY = data[PHL_CAPACITY];
-					Flu_Manager::Instance()->WORK_WEEKEND = data[PHL_WEEKEND];
-					Flu_Manager::Instance()->ALLOW_TRAVEL = data[TRAVEL_CITIES];
-					state = prev_state;
-		} else if (state == GET_COMMAND) {
-					double data[CONSTANTS_SIZE];
-					data[SIM_DAYS] = Flu_Manager::Instance()->max_days;
-					data[R_PANDEMIC] = Flu_Manager::Instance()->reproduction_number_pandemic;
-					data[R_SEASONAL] = Flu_Manager::Instance()->reproduction_number_seasonal;
-					data[SCALED] = Flu_Manager::Instance()->SCALING;
-					data[OOS_TRAVEL] = Flu_Manager::Instance()->ALLOW_OOS_TRAVEL;
-					data[SAMPLING] = Flu_Manager::Instance()->SAMPLING_CRITERIA;
-					data[N_PHL] = Flu_Manager::Instance()->NUM_PHL;
-					data[PHL_CAPACITY] = Flu_Manager::Instance()->PHL_CAPACITY;
-					data[PHL_WEEKEND] = Flu_Manager::Instance()->WORK_WEEKEND;
-					data[TRAVEL_CITIES] = Flu_Manager::Instance()->ALLOW_TRAVEL;
-
-					send_constants2interface (&data[0]);
-					state = prev_state;
-		}else if (state == RUNNING) {
-			day = 1+t_now/24; // A day begins ...
-			if (day >=2)
-			{//hr cycles from 1 to 24
-				hr=(t_now-(24*(day-1)))+1;
-			}
-			else {//less than 24 hours have passed
-				hr=t_now+1;
-			}
-			printf("\nRun %d Day %d  Hour %d\n\n",_id,day,hr);
+		day = 1+t_now/24; // A day begins ...
+		if (day >=2)
+		{//hr cycles from 1 to 24
+			hr=(t_now-(24*(day-1)))+1;
+		}
+		else {//less than 24 hours have passed
+			hr=t_now+1;
+		}
+		printf("\nRun %d Day %d  Hour %d\n\n",_id,day,hr);
 //yuwen 0624 add update sample pool
-			if(day !=1 && hr==8 && Flu_Manager::Instance()->SAMPLING_CRITERIA>0)
-			{
+		if(day !=1 && hr==8 && Flu_Manager::Instance()->SAMPLING_CRITERIA>0)
+		{
     		//t = clock();
-				SamplingPHL(day);
-				//t = clock() - t;
+			SamplingPHL(day);
+			//t = clock() - t;
     		//double time_taken = ((double)t)/CLOCKS_PER_SEC/60; // in seconds
     		//fprintf(time_output,"Sampling on day %d took %f mins to execute \n", day, time_taken);
     	}
 
 //yuwen 0624 add end
-			//have each city updates its flu outbreak
-			for(unsigned int i=0;i<_cities.size();i++)
+		//have each city updates its flu outbreak
+		for(unsigned int i=0;i<_cities.size();i++)
+		{
+			if(_cities[i]->outbreakRunning())
 			{
-				if(_cities[i]->outbreakRunning())
-				{
-					_cities[i]->updateOutbreak(hr,day);
+				_cities[i]->updateOutbreak(hr,day);
 //yuwen add sample testing 05162018_3 begin
-					if(hr==17 && Flu_Manager::Instance()->SAMPLING_CRITERIA>0)//At 5pm, PHL collect samples from CL from all cities
-					{
-						_cities[i]->collectFromCity(day);//start sampling process in the CL
+				if(hr==17 && Flu_Manager::Instance()->SAMPLING_CRITERIA>0)//At 5pm, PHL collect samples from CL from all cities
+				{
+					_cities[i]->collectFromCity(day);//start sampling process in the CL
 //yuwen add sample testing 05162018_3 end
-					}
-
-					if(hr==23)//time to collect infection data
-					{
-						new_recovered_today_pandemic+=_cities[i]->getNewRecoverd(true);
-						new_recovered_today_seasonal+=_cities[i]->getNewRecoverd(false);
-						total_sim_coinfected += _cities[i]->getNewInfectedByType(COINFECTED_SIMULTANEOUS);
-		 				total_infected_pandemic_only += _cities[i]->getNewInfectedByType(INFECTED_PANDEMIC);
-		 				total_infected_seasonal_only += _cities[i]->getNewInfectedByType(INFECTED_SEASONAL);
-		 				total_coinfected_s_p += _cities[i]->getNewInfectedByType(COINFECTED_SEASONAL_PANDEMIC);
-		 				total_reinfected_s_p +=_cities[i]->getNewInfectedByType(REINFECTED_SEASONAL_PANDEMIC);
-		 				total_coinfected_p_s += _cities[i]->getNewInfectedByType(COINFECTED_PANDEMIC_SEASONAL);
-						total_reinfected_p_s += _cities[i]->getNewInfectedByType(REINFECTED_PANDEMIC_SEASONAL);
-						total_infected_pandemic = total_infected_pandemic_only+total_coinfected_s_p +total_reinfected_s_p +total_sim_coinfected;
-		 				total_infected_seasonal = total_infected_seasonal_only+total_coinfected_p_s+total_reinfected_p_s+ total_sim_coinfected;
-						total_infected=total_infected_pandemic_only+total_infected_seasonal_only+total_sim_coinfected;
-					}
-
 				}
+
+				if(hr==23)//time to collect infection data
+				{
+					new_recovered_today_pandemic+=_cities[i]->getNewRecoverd(true);
+					new_recovered_today_seasonal+=_cities[i]->getNewRecoverd(false);
+					total_sim_coinfected += _cities[i]->getNewInfectedByType(COINFECTED_SIMULTANEOUS);
+		 			total_infected_pandemic_only += _cities[i]->getNewInfectedByType(INFECTED_PANDEMIC);
+		 			total_infected_seasonal_only += _cities[i]->getNewInfectedByType(INFECTED_SEASONAL);
+		 			total_coinfected_s_p += _cities[i]->getNewInfectedByType(COINFECTED_SEASONAL_PANDEMIC);
+		 			total_reinfected_s_p +=_cities[i]->getNewInfectedByType(REINFECTED_SEASONAL_PANDEMIC);
+		 			total_coinfected_p_s += _cities[i]->getNewInfectedByType(COINFECTED_PANDEMIC_SEASONAL);
+					total_reinfected_p_s += _cities[i]->getNewInfectedByType(REINFECTED_PANDEMIC_SEASONAL);
+					total_infected_pandemic = total_infected_pandemic_only+total_coinfected_s_p +total_reinfected_s_p +total_sim_coinfected;
+		 			total_infected_seasonal = total_infected_seasonal_only+total_coinfected_p_s+total_reinfected_p_s+ total_sim_coinfected;
+					total_infected=total_infected_pandemic_only+total_infected_seasonal_only+total_sim_coinfected;
+				}
+
 			}
-
-			if(hr==24)
-			{
-				_infectedByDay_p.push_back(total_infected_pandemic);
-				_infectedByDay_s.push_back(total_infected_seasonal);
-				_totalInfectedByDay.push_back(total_infected);
-
-				fprintf(globalOutput_genStats,"%d		%d		%d		%d		%d		%d		%d		%d		%d		%d		%d		%d		%d		%d \n",day,_totalPopulation,total_infected,total_infected_pandemic,new_recovered_today_pandemic,total_infected_seasonal,new_recovered_today_seasonal,total_infected_pandemic_only,total_infected_seasonal_only,total_coinfected_s_p,total_reinfected_s_p,total_coinfected_p_s,total_reinfected_p_s,total_sim_coinfected);
-				//reset global daily variables
-				new_recovered_today_pandemic = 0;
-				new_recovered_today_seasonal = 0;
-//yuwen add 0624 print file
-		  	int generalTestedStats[] = {day, total_PHLtested_pandemic,total_PHLtested_seasonal,\
-					total_PHLtested_all,total_pandemic_submit_samples,total_seasonal_submit_samples,total_submit_samples,total_both_submit_samples,\
-					total_pandemic_uncollect_samples,total_seasonal_uncollect_samples,total_uncollect_samples,\
-					total_pandemic_MSSS_samples,total_seasonal_MSSS_samples,total_MSSS_samples,\
-					total_discard_pandemic,total_discard_seasonal,total_discard_all, CAPACITY_IND};
-
-				send_data2interface(&generalTestedStats[0]);
-
-				for (int var:generalTestedStats)
-					fprintf(sampleOutput, "%d 	", var);
-				fprintf(sampleOutput, "\n");
-
-//yuwen add 0624 end
-			}
-			t_now++;
-		} else if (state == STOPPED) {
-			break;
 		}
-	}
 
+		if(hr==24)
+		{
+			_infectedByDay_p.push_back(total_infected_pandemic);
+			_infectedByDay_s.push_back(total_infected_seasonal);
+			_totalInfectedByDay.push_back(total_infected);
+
+			fprintf(globalOutput_genStats,"%d		%d		%d		%d		%d		%d		%d		%d		%d		%d		%d		%d		%d		%d \n",day,_totalPopulation,total_infected,total_infected_pandemic,new_recovered_today_pandemic,total_infected_seasonal,new_recovered_today_seasonal,total_infected_pandemic_only,total_infected_seasonal_only,total_coinfected_s_p,total_reinfected_s_p,total_coinfected_p_s,total_reinfected_p_s,total_sim_coinfected);
+			//reset global daily variables
+			new_recovered_today_pandemic = 0;
+			new_recovered_today_seasonal = 0;
+//yuwen add 0624 print file
+			fprintf(sampleOutput, "%d 	%d 	%d 	%d 	%d 	%d 	%d 	%d 	%d 	%d 	%d 	%d 	%d 	%d 	%d 	%d 	%d 	%d\n", day, total_PHLtested_pandemic,total_PHLtested_seasonal,\
+				total_PHLtested_all,total_pandemic_submit_samples,total_seasonal_submit_samples,total_submit_samples,total_both_submit_samples,\
+				total_pandemic_uncollect_samples,total_seasonal_uncollect_samples,total_uncollect_samples,\
+				total_pandemic_MSSS_samples,total_seasonal_MSSS_samples,total_MSSS_samples,\
+				total_discard_pandemic,total_discard_seasonal,total_discard_all,CAPACITY_IND);
+//yuwen add 0624 end
+		}
+		t_now++;
+	}
 //yuwen change 0625 print
 	//fclose(time_output);
 	fclose(globalOutput_genStats);
@@ -421,13 +371,7 @@ MSSS_p 	MSSS_s 	MSSS 	discard_p 	discard_s 	discard 	CAP_ind\n");
 	_uncollectedSample.shrink_to_fit();
 	_sampleMsss.clear();
 	_sampleMsss.shrink_to_fit();
-
-	int generalTestedStats[] = {-1};
-	send_data2interface(&generalTestedStats[0]);
-	return 1;
 }
-
-
 
 bool SimulationRun::hasCityWithOutbreak()
 {
@@ -692,7 +636,7 @@ void SimulationRun::SamplingPHL(int day)
 			}
 		}
 		for (int j = 0; j < 3; j++) {
-			n_test_by_day[j] = INF_MIN( n_submit_by_day[j] , (int)(n_submit_by_day[j]*Flu_Manager::Instance()->PHL_CAPACITY /
+			n_test_by_day[j] = MIN( n_submit_by_day[j] , (int)(n_submit_by_day[j]*Flu_Manager::Instance()->PHL_CAPACITY /
 													(n_submit_by_day[0] + n_submit_by_day[1] + n_submit_by_day[2])));
 		}
 	}

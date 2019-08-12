@@ -27,6 +27,7 @@ public:
     }
 
     vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
+    gtk_widget_set_name (vbox, "vbox");
     gtk_widget_set_halign (vbox, GTK_ALIGN_START);
     if (frame) {
       result_frame = gtk_frame_new ("");
@@ -46,18 +47,17 @@ class INF_HBOX
 public:
   GtkWidget* hbox;
 public:
-  INF_HBOX (GtkWidget* master, gboolean frame)
+  INF_HBOX (GtkWidget* master, gboolean frame, gboolean expand)
   {
     hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 2);
+    gtk_widget_set_name (hbox, "hbox");
     gtk_widget_set_halign (hbox, GTK_ALIGN_START);
     if (frame) {
       GtkWidget *result_frame = gtk_frame_new ("");
       gtk_container_add (GTK_CONTAINER (result_frame), hbox);
-      gtk_box_pack_start(GTK_BOX (master), result_frame, TRUE, TRUE, 2);
-      //gtk_container_add (GTK_CONTAINER(master), result_frame);
+      gtk_box_pack_start(GTK_BOX (master), result_frame, expand, TRUE, 2);
     } else {
-      gtk_box_pack_start(GTK_BOX (master), hbox, TRUE, TRUE, 2);
-      //gtk_container_add (GTK_CONTAINER(master), hbox);
+      gtk_box_pack_start(GTK_BOX (master), hbox, expand, TRUE, 2);
     }
   }
 };
@@ -72,8 +72,26 @@ public:
     button = gtk_button_new_with_label (text);
     gtk_widget_set_halign (button, GTK_ALIGN_START);
     g_signal_connect (button, "clicked", G_CALLBACK (func_cb), (gpointer) user_data);
-    g_object_set (button, "margin", 5, NULL);
+    g_object_set (button, "margin", 2, NULL);
     gtk_box_pack_start(GTK_BOX (master), button, FALSE, TRUE, 2);
+    gtk_widget_set_name (button, "btn");
+  }
+
+};
+
+class INF_TOGGLE_BUTTON
+{
+public:
+  GtkWidget* button;
+
+  INF_TOGGLE_BUTTON (GtkWidget* master, const gchar text[], void (*func_cb)(GtkWidget*, gpointer), gpointer user_data)
+  {
+    button = gtk_toggle_button_new_with_label (text);
+    gtk_widget_set_halign (button, GTK_ALIGN_START);
+    g_signal_connect (button, "toggled", G_CALLBACK (func_cb), (gpointer) user_data);
+    g_object_set (button, "margin", 2, NULL);
+    gtk_box_pack_start(GTK_BOX (master), button, FALSE, TRUE, 2);
+    gtk_widget_set_name (button, "tgl_btn");
   }
 
 };
@@ -123,11 +141,13 @@ public:
       gtk_widget_set_halign (label, GTK_ALIGN_START);
       gtk_size_group_add_widget (input_group,  label);
       gtk_label_set_xalign (GTK_LABEL (label), 0.);
+      gtk_widget_set_name(label, "label");
       entry[i] = gtk_entry_new ();
       gtk_widget_set_halign (entry[i], GTK_ALIGN_START);
       gtk_size_group_add_widget (input_group,  entry[i]);
       gtk_box_pack_start(GTK_BOX (enclosing_label_box.vbox), label, FALSE, TRUE, 2);
       gtk_box_pack_start(GTK_BOX (enclosing_entry_box.vbox), entry[i], FALSE, TRUE, 2);
+      gtk_widget_set_name (entry[i], "entry");
     }
   }
 
@@ -176,9 +196,10 @@ public:
 
     // Create a view
     tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
+    gtk_widget_set_name (tree, "tree");
     gtk_widget_set_halign (tree, GTK_ALIGN_START);
-    g_object_unref (G_OBJECT (store));
 
+    g_object_unref (G_OBJECT (store));
     //Add and render columns
     add_column_to_tree ("Day", "text", DAY);
     add_column_to_tree ("test_p", "text", TEST_P);
@@ -201,6 +222,7 @@ public:
 
     gtk_widget_set_size_request (scrolled_window, 700, 100);
     gtk_container_add (GTK_CONTAINER (scrolled_window), tree);
+
     gtk_box_pack_start(GTK_BOX (master), scrolled_window, TRUE, FALSE, 2);
 
     combo_box = gtk_combo_box_text_new ();
@@ -212,6 +234,7 @@ public:
     }
     gtk_combo_box_set_active (GTK_COMBO_BOX (combo_box), 0);
     gtk_box_pack_start(GTK_BOX (master), combo_box, TRUE, FALSE, 2);
+    gtk_widget_set_name (combo_box, "combo_box");
 
     da = gtk_drawing_area_new ();
 
@@ -220,7 +243,7 @@ public:
     gtk_widget_set_size_request (scrolled_window2, 700, 540);
     gtk_container_add (GTK_CONTAINER (scrolled_window2), da);
     gtk_box_pack_start(GTK_BOX (master), scrolled_window2, TRUE, TRUE, 2);
-
+    gtk_widget_set_name (da, "drawing");
 
     g_signal_connect (combo_box, "changed", G_CALLBACK (func_cb), (gpointer) da);
     g_signal_connect (da, "draw", G_CALLBACK (draw_cb), NULL);

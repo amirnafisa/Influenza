@@ -57,7 +57,7 @@ public:
 
   void start_new_run (INF_RESULT_VIEW* text_view)
   {
-    if (state == RUNNING) {
+    if (state == RUNNING || state == PAUSED) {
       stop_run();
     }
 
